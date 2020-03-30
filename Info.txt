@@ -1,0 +1,2 @@
+Cars.txt file has data of the form:
+VIN (Code)Color(0-2) (Code)Fuel(0-1) (Code)Type(0-2) Name

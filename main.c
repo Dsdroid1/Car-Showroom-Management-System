@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<math.h>
+
 
 #define MAX_CAR_NAME 20
 #define k 3//try to make a 5-ary B+ tree
@@ -46,9 +46,9 @@ typedef struct Car_Tree_Node
 Car MakeCar(int VIN,char Name[],Car_Color color,Fuel_Type fuel,Car_Type type)
 {
     Car C;
-    //C=(Car *)malloc(sizeof(Car));
+    
     C.VIN=VIN;
-    //strcpy(C.Name,Name);
+    strcpy(C.Name,Name);
     C.color=color;
     C.fuel=fuel;
     C.type=type;
@@ -64,7 +64,7 @@ Car_Data_Node* MakeCarDataNode()
         int i=0;
         for(i=0;i<c;i++)
         {
-            node->car[i]=MakeCar(-1,'\0',YELLOW,DIESEL,SUV);
+            node->car[i]=MakeCar(-1,"none",YELLOW,DIESEL,SUV);
         }
         node->next=NULL;
         node->prev=NULL;
@@ -518,7 +518,7 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                         //The else part is when the tree node doesnt have any space
                         else
                         {
-                            //Write correct loops ...currently they seem to be buggy
+                            //Write correct loops ...currently they seem to be buggy->done
                             int median;
                             //-----buggy part
                             /*
@@ -602,54 +602,7 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                                     leafnode->children.child_l[pos+1]=root->children.child_l[copy+1];
                                     root->children.child_l[copy+1]=NULL;
                                 }
-                                /*
-                                for(; copy<k-1&&copy<i+1 ;copy++,pos++)
-                                {
-                                    leafnode->VIN[pos]=root->VIN[copy];
-                                    root->VIN[copy]=-1;
-                                    leafnode->children.child_l[pos]=root->children.child_l[copy];
-                                    root->children.child_l[copy]=NULL;
-                                }
-                                if(i+1==k)//The new node is greater
-                                {
-                                    leafnode->children.child_l[pos]=root->children.child_l[copy];
-                                    root->children.child_l[copy]=NULL;
-
-                                    leafnode->VIN[pos]==newnode->car[0].VIN;
-                                    leafnode->children.child_l[pos+1]=newnode;
-                                }
-                                else
-                                {
-                                    //newnode is somewhere in between
-                                    leafnode->VIN[pos]=newnode->car[0].VIN;
-                                    leafnode->children.child_l[pos]=newnode;
-                                    pos++;
-                                    for(; copy<k-1;copy++,pos++)
-                                    {
-                                        leafnode->VIN[pos]=root->VIN[copy];
-                                        root->VIN[copy]=-1;
-                                        leafnode->children.child_l[pos]=root->children.child_l[copy];
-                                        root->children.child_l[copy]=NULL;
-                                    }
-                                    leafnode->children.child_l[pos]=root->children.child_l[copy];
-                                    root->children.child_l[copy]=NULL;
-                                }*/
-                                /*
-                                leafnode->VIN[pos]=newnode->car[0].VIN;
-                                leafnode->children.child_l[pos]=newnode;
-                                pos++;
-                                for(; copy<k-1;copy++,pos++)
-                                {
-                                    leafnode->VIN[pos]=root->VIN[copy];
-                                    root->VIN[copy]=-1;
-                                    leafnode->children.child_l[pos]=root->children.child_l[copy];
-                                    root->children.child_l[copy]=NULL;
-                                }
-                                if(copy>i+1)
-                                {
-                                    leafnode->children.child_l[pos]=root->children.child_l[copy];
-                                }*/
-                                //Stuff to be done
+                                
                             }
                             *make_new_node=median;
                             return leafnode;
@@ -660,6 +613,507 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
             
         }
     }
+}
+//-------------------------------Need to write delete function for B+ Tree database------------
+Car_Tree_Node* DeleteFromCarDatabase(Car_Tree_Node *root,Car car,Bool *less);
+Car_Tree_Node* DeleteCar(Car_Tree_Node *root,int VIN)
+{
+    //Currently it should exist in database
+    Bool less=FALSE;
+    Car_Tree_Node *retval=NULL;
+    retval=DeleteFromCarDatabase(root,(MakeCar(VIN,"A",0,0,0)),&less);
+    retval=root;
+    if(retval->VIN[0]==-1)
+    {
+        retval=retval->children.child_t[0];
+    }
+    else
+    {
+        retval=root;
+    }
+    return retval;
+}
+
+Car_Tree_Node* DeleteFromCarDatabase(Car_Tree_Node *root,Car car,Bool *less)//call with false
+{
+    if(root!=NULL)
+    {
+        if(root->isLeaf==TRUE)
+        {
+            int i=0;
+            int found=0;
+            while(i < k-1 && found==0)
+            {
+                if(root->VIN[i]!=-1)
+                {
+                    if(car.VIN >= root->VIN[i])
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        found=1;
+                    }
+                }
+                else
+                {
+                    found=1;
+                }
+            }
+            //i is the link which can contain the given data item
+            Car_Data_Node *datanode=NULL;
+            datanode=root->children.child_l[i];
+            int search=0,search_success=0;
+            while(search < c && search_success==0)
+            {
+                if(datanode->car[search].VIN==car.VIN)
+                {
+                    search_success=1;
+                }
+                else
+                {
+                    search++;
+                }
+            }
+            if(search_success==1)
+            {
+                int num_valid=c;
+                while(datanode->car[num_valid-1].VIN==-1)
+                {
+                    num_valid--;
+                }
+                //Now we know how many entries are there in this node
+                if(num_valid-1 >= (c+1)/2)
+                {
+                    //Direct deletion of this entry is possible
+                    for(; search < num_valid-1 ;search++)
+                    {
+                        datanode->car[search]=datanode->car[search+1];
+                    }   
+                    datanode->car[search].VIN=-1;
+                    printf("DELETE SUCCESS");
+                }
+                else
+                {
+                    //This node ,after deleteion will violate the min content property
+                    //Check if sibling has extra....
+                    int done=0;
+                    //First Check right sibling......
+                    Car_Data_Node *rsibling,*lsibling;
+                    int delete=0;
+                    if(i < k-1)//Right sibling exists
+                    {
+                        rsibling=root->children.child_l[i+1];
+                        if(rsibling!=NULL)
+                        {
+                            done=1;
+                            int num_in_rsib=c;
+                            while(rsibling->car[num_in_rsib-1].VIN==-1)
+                            {
+                                num_in_rsib--;
+                            }
+                            if(num_in_rsib-1 > (c+1)/2)//rsibling can donate to datanode via parent
+                            {
+                                for(; search < num_valid-1 ;search++)
+                                {
+                                    datanode->car[search]=datanode->car[search+1];
+                                }   
+                                datanode->car[search]=rsibling->car[0];
+                                root->VIN[i]=rsibling->car[0].VIN;
+                                int move=0;
+                                for(; move < num_in_rsib-1 ;move++)
+                                {
+                                    rsibling->car[move]=rsibling->car[move+1];
+                                }
+                                rsibling->car[move].VIN=-1;
+                                printf("\nSuccessful Deletion");
+                                delete=1;
+                            }
+                            else//rsibling does not have enough to donate,merge these two
+                            {
+                            
+                                for(; search < num_valid-1 ;search++)
+                                {
+                                    datanode->car[search]=datanode->car[search+1];
+                                }   
+                                datanode->car[search].VIN=-1;
+                                //Now put the data of rsibling into datanode
+                                int  move=0;
+                                for(; move < num_in_rsib; move++,search++)
+                                {
+                                    datanode->car[search]=rsibling->car[move];
+                                    rsibling->car[move].VIN=-1;
+                                }
+                                datanode->next=rsibling->next;
+                                if(rsibling->next!=NULL)
+                                {
+                                    (rsibling->next)->prev=datanode;
+                                }
+                                free(rsibling);
+                                root->children.child_l[i+1]=NULL;
+                                //Now we have to delete the root->VIN[i]
+
+                                //Now the cases depend on how many nodes are present in the root node here
+                                int num_item_in_root=k-1;
+                                while(root->VIN[num_item_in_root-1]==-1)
+                                {
+                                    num_item_in_root--;
+                                }
+                                int shift=i;
+                                for(; shift < num_item_in_root-1 ; shift++)
+                                {
+                                    root->VIN[shift]=root->VIN[shift+1];
+                                    root->children.child_l[shift+1]=root->children.child_l[shift+2];
+                                    root->children.child_l[shift+2]=NULL;
+                                }
+                                root->VIN[shift]=-1;
+                                //Now we need to check how many items are present in this node
+                                num_item_in_root--;
+                                if(num_item_in_root == 0)//Corner case,if root was the onlky node uptil now
+                                {
+                                    Car_Data_Node *tptr;
+                                    tptr=root->children.child_l[0];
+                                    
+                                    root->VIN[0]=tptr->car[0].VIN;
+                                    root->children.child_l[1]=root->children.child_l[0];
+                                    root->children.child_l[0]=NULL;
+                                    //Maintaining property
+                                }
+                                else if(num_item_in_root < (k+1)/2)
+                                {
+                                    //Now this node is devoid, unfolding of recursion should then adjust it
+                                    *less=TRUE;
+                                }
+                                else
+                                {
+                                    //This node is alright after shifting,the operation was a success
+                                    printf("\nSuccessful Deletion");
+                                    *less=FALSE;
+                                }
+                            }
+                        }
+                    }
+                    if(done==0)//rsibling does not exist,check to borrow from left sibling
+                    {
+                        if(i-1 >= 0)//left sibling can exist
+                        {
+                            lsibling=root->children.child_l[i-1];
+                            if(lsibling!=NULL)
+                            {
+                                int num_in_lsib=c;
+                                while(lsibling->car[num_in_lsib-1].VIN==-1)
+                                {
+                                    num_in_lsib--;
+                                }
+
+                                if(num_in_lsib > (c+1)/2)
+                                {
+                                    //Donation to datanode possible
+                                    root->VIN[i-1]=lsibling->car[num_in_lsib-1].VIN;
+                                    //num_valid is for datanode
+                                    //Delete the entry at 'search' index
+                                    datanode->car[search].VIN=-1;
+                                    //move prev entries here
+                                    int move=search;
+                                    for(; move > 0;move--)
+                                    {
+                                        datanode->car[move]=datanode->car[move-1];
+                                    }
+                                    datanode->car[move]=lsibling->car[num_in_lsib-1];
+                                    lsibling->car[num_in_lsib-1].VIN=-1;
+                                }
+                                else
+                                {
+                                    //This has to be merged with datanode
+                                    int move=0;
+                                    for(; move < c;move++)
+                                    {
+                                        if(datanode->car[move].VIN!=-1 && move!=search)
+                                        {
+                                            lsibling->car[num_in_lsib]=datanode->car[move];
+                                            num_in_lsib++;
+                                        }
+                                    }
+                                    root->VIN[i-1]=-1;
+                                    lsibling->next=datanode->next;
+                                    if(datanode->next!=NULL)
+                                    {
+                                        (datanode->next)->prev=lsibling;
+                                    }
+                                    free(datanode);
+                                    root->children.child_l[i]=NULL;
+                                    if(i-1==0)//This whole leaf node gone->root
+                                    {
+                                        root->VIN[0]=(root->children.child_l[0])->car[0].VIN;
+                                        root->children.child_l[1]=root->children.child_l[0];
+                                        root->children.child_l[0]=NULL;
+                                    }
+                                    if( i-1 >= (k+1)/2-1)//???????????-1?????????????????
+                                    {
+                                        //The parent node is alright
+                                        *less=FALSE;
+                                    }
+                                    else
+                                    {
+                                        *less=TRUE;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //Even left sibling is null
+                                //Simply delete here,this one seems to be the root
+                                for(; search < num_valid-1 ;search++)
+                                {
+                                    datanode->car[search]=datanode->car[search+1];
+                                }   
+                                datanode->car[search].VIN=-1;
+                                num_valid--;
+                                if(num_valid==0)
+                                {
+                                    free(root);
+                                    root=NULL;
+                                    return root;
+                                }
+                            }
+                        }
+
+                    }
+                    
+                }
+            }
+        }
+        else
+        {
+            //Check which pointer to chase
+            int i=0;
+            int found=0;
+            while(i < k-1 && found==0)
+            {
+                if(root->VIN[i]!=-1)
+                {
+                    if(car.VIN >= root->VIN[i])
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        found=1;
+                    }
+                }
+                else
+                {
+                    found=1;
+                }
+            }
+            Car_Tree_Node *retval=NULL,*chased_node=NULL;
+            retval=DeleteFromCarDatabase(root->children.child_t[i],car,less);
+            if(*less==FALSE)
+            {
+                //Simply return
+                return retval;
+            }
+            else
+            {
+                int done=0;
+                //Some changes were made,i.e. the ith child has less children
+                //Check if rsibling exists
+                Car_Tree_Node *rsibling,*lsibling;
+                if(i < k-1)
+                {
+                    rsibling=root->children.child_t[i+1];
+                    if(rsibling!=NULL)//right sibling exists
+                    {
+                        //Check how many data parts are here
+                        done=1;
+                        int rsize=0;
+                        while(rsize < k-1 && root->VIN[rsize]!=-1)
+                        {
+                            rsize++;
+                        }
+                        //********************************************Read below comment to know what to change*******
+                        if(rsize-1 > (k+1)/2-1)//(k+1)/2 min children...this -1 has to be done on prev(leaf part also)
+                        {
+                            //sibling can donate
+                            chased_node=root->children.child_t[i];
+                            int pos=0;
+                            while(chased_node->VIN[pos]!=-1)
+                            {
+                                pos++;
+                            }
+                            chased_node->VIN[pos]=root->VIN[i];
+                            chased_node->children.child_t[pos+1]=rsibling->children.child_t[0];
+                            root->VIN[i]=rsibling->VIN[0];
+                            int shift=0;
+                            for(; shift< (k-1)-1;shift++)
+                            {
+                                rsibling->VIN[shift]=rsibling->VIN[shift+1];
+                                rsibling->children.child_t[shift]=rsibling->children.child_t[shift+1];
+                            }
+                            rsibling->VIN[shift]=-1;
+                            rsibling->children.child_t[shift]=rsibling->children.child_t[shift+1];
+                            rsibling->children.child_t[shift+1]=NULL;
+                            //Sibling donation completed....
+                            *less=FALSE;
+                        }
+                        else
+                        {
+                            //rsibling does not have enough to donate
+                            //merge these two via parent
+                            chased_node=root->children.child_t[i];
+                            int pos=0;
+                            while(chased_node->VIN[pos]!=-1)
+                            {
+                                pos++;
+                            }
+                            chased_node->VIN[pos]=root->VIN[i];
+                            chased_node->children.child_t[pos+1]=rsibling->children.child_t[0];
+                            int copy=0;
+                            int flag=0;
+                            for(; copy < k-1&&flag==0;copy++,pos++ )
+                            {
+                                if(rsibling->VIN[copy]!=-1)
+                                {
+                                    chased_node->VIN[pos]=rsibling->VIN[copy];
+                                    chased_node->children.child_t[pos+1]=rsibling->children.child_t[copy+1];
+                                }
+                                else
+                                {
+                                    flag=1;
+                                }
+                            }
+                            free(rsibling);
+                            int shift=0;
+                            flag=0;
+                            for(shift=i;shift<(k-1)-1&&flag==0;shift++)
+                            {
+                                if(root->VIN[shift]!=-1)
+                                {
+                                    root->VIN[shift]=root->VIN[shift+1];
+                                    root->children.child_t[shift+1]=root->children.child_t[shift+2];
+                                }
+                                else
+                                {
+                                    flag=0;
+                                }
+                            }
+                            if(shift<k-1)
+                            {
+                                root->VIN[shift]=-1;
+                                root->children.child_t[shift+1]=NULL;
+                            }
+                            //shift is also the number of valid nodes
+                            if(shift < (k+1)/2-1)
+                            {
+                                *less=TRUE;
+                            }
+                            else
+                            {
+                                *less=FALSE;
+                            }
+                        }
+                    }
+                }
+                if(done==0)//rsibling does not exist 
+                {
+                    Car_Tree_Node *lsibling=NULL;
+                    if(i-1>=0)
+                    {
+                        lsibling=root->children.child_t[i-1];
+                        if(lsibling!=NULL)
+                        {
+                            //try to borrow from lsibling
+                            int lsize=0;
+                            while(lsize < k-1 && root->VIN[lsize]!=-1)
+                            {
+                                lsize++;
+                            }
+                            if(lsize-1 > (k+1)/2-1)//(k+1)/2 min children...this -1 has to be done on prev(leaf part also)
+                            {
+                                //sibling can donate
+                                chased_node=root->children.child_t[i];
+                                int pos=(k-1)-1,flag=0;
+                                for(; pos>0;pos--)
+                                {
+                                    chased_node->VIN[pos]=chased_node->VIN[pos-1];
+                                    chased_node->children.child_t[pos+1]=chased_node->children.child_t[pos];
+                                }
+                                chased_node->children.child_t[pos+1]=chased_node->children.child_t[pos];
+                                chased_node->children.child_t[0]=lsibling->children.child_t[lsize];
+                                lsibling->children.child_t[lsize]=NULL;
+                                chased_node->VIN[0]=root->VIN[i-1];
+                                root->VIN[i-1]=lsibling->VIN[lsize-1];
+                                lsibling->VIN[lsize-1]=-1;
+                                lsize--;
+                                *less=FALSE;
+                                
+                                
+                                /*free(chased_node);
+                                flag=0;
+                                int copy=i-1;
+                                while(copy < (k-1)-1 && flag==0)
+                                {
+                                    root->VIN[copy]=root->VIN[copy+1];
+                                    root->children.child_t[copy+1]=root->children.child_t[copy+2];
+                                    root->children.child_t[copy+2]=NULL;
+                                    copy++;
+                                }
+                                root->VIN[copy]=-1;
+                                */
+                            }
+                            else
+                            {
+                                //merge and bring a parent down
+                                lsibling->VIN[lsize]=root->VIN[i-1];
+                                lsibling->children.child_t[lsize+1]=chased_node->children.child_t[0];
+                                lsize++;
+                                int pos=0,flag=0;
+                                while(pos < k-1 && flag==0)
+                                {
+                                    if(chased_node->VIN[pos]!=-1)
+                                    {
+                                        lsibling->VIN[lsize]=chased_node->VIN[pos];
+                                        lsibling->children.child_t[lsize+1]=chased_node->children.child_t[pos+1];
+                                        lsize++;
+                                    }
+                                    else
+                                    {
+                                        flag=1;
+                                    }
+                                    pos++;
+                                }
+                                free(chased_node);
+                                //rsibling did not exist becoz right side would not have any valid data partition item
+                                root->VIN[i-1]=-1;
+                                root->children.child_t[i]=NULL;
+                                *less=TRUE;
+                            }
+                            return root;//maybe not required
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+//--------------------------------End OF Delete function---------------------------------------
+//*****************This function reads car data from a file*************************************
+Car_Tree_Node* Init_Cars()
+{
+    Car_Tree_Node *root=NULL;
+    FILE *fp;
+    int VIN,color,fuel,type;
+    char Name[MAX_CAR_NAME];
+    Car car;
+    fp=fopen("Cars.txt","r");
+    while(fscanf(fp,"%d%d%d%d%s",&VIN,&color,&fuel,&type,Name)!=EOF)
+    {
+        car=MakeCar(VIN,Name,color,fuel,type);
+        root=InsertCar(root,car);
+    }
+    fclose(fp);
+    return root;
 }
 
 void Print(Car_Tree_Node *root)
@@ -684,7 +1138,43 @@ void Print(Car_Tree_Node *root)
         int i=0;
         while (i<c&&d->car[i].VIN!=-1)
         {
-            printf("\n%d",d->car[i].VIN);
+            printf("\nCar VIN:%d",d->car[i].VIN);
+            printf(", Car Name:%s",d->car[i].Name);
+            printf(", Color:");
+            if(d->car[i].color==RED)
+            {
+                printf("RED");
+            }
+            else if(d->car[i].color==BLUE)
+            {
+                printf("BLUE");
+            }
+            else if(d->car[i].color==YELLOW)
+            {
+                printf("YELLOW");
+            }
+            printf(", Fuel Type:");
+            if(d->car[i].fuel==PETROL)
+            {
+                printf("PETROL");
+            }
+            else
+            {
+                printf("DIESEL");
+            }
+            printf(", CARTYPE:");
+            if(d->car[i].type==SEDAN)
+            {
+                printf("SEDAN");
+            }
+            else if(d->car[i].type==SUV)
+            {
+                printf("SUV");
+            }
+            else
+            {
+                printf("HATCHBACK");
+            }
             i++;
         }
         d=d->next;
@@ -697,12 +1187,15 @@ void main()
     Car_Tree_Node *root=NULL;
     Car car;
     int done=1,VIN;
+    root=Init_Cars();
+    Print(root);
     while(done)
     {
         printf("\nEnter Car data:");
         scanf("%d",&VIN);
-        car=MakeCar(VIN,"a",YELLOW,DIESEL,SEDAN);
-        root=InsertCar(root,car);
+        //car=MakeCar(VIN,"a",YELLOW,DIESEL,SEDAN);
+        //root=InsertCar(root,car);
+        root=DeleteCar(root,VIN);
         Print(root);
         //printf("\nDO u want to continue?(0 to exit)");
         //scanf("%d",&done);
