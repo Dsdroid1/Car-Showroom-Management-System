@@ -92,6 +92,7 @@ Car_Tree_Node* MakeCarTreeNode()
 
 /////////////////////////////////Try To write insert fn
 Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_node);
+void Print(Car_Tree_Node *root);
 Car_Tree_Node* InsertCar(Car_Tree_Node *root,Car car)
 {
     int make_new_node=-1;
@@ -111,6 +112,8 @@ Car_Tree_Node* InsertCar(Car_Tree_Node *root,Car car)
         true_root->children.child_t[1]=retval;
         root=true_root;
     }
+    //Print(root);
+
     return root;
 }
 
@@ -179,15 +182,17 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                         check_space++;
                     }
                 }
-                if(check_space!=k-1)
+                if(res==1)
                 {
                     //Space in this mode exists
                     //The to be inserted value will come via make_new_node contents
-                    int move=k-1;
+                    int move=(k-1)-1;//(k-1)-1
                     for(; move > i; move--)
                     {
                         root->VIN[move]=root->VIN[move-1];
+                        root->VIN[move-1]=-1;
                         root->children.child_t[move+1]=root->children.child_t[move];
+                        root->children.child_t[move]=NULL;
                     }
                     root->VIN[move]=*make_new_node;
                     root->children.child_t[move+1]=retval;
@@ -233,7 +238,9 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                         for(move=(k-1)/2-1;move>i;move--)
                         {
                             root->VIN[move]=root->VIN[move-1];
+                            root->VIN[move-1]=-1;
                             root->children.child_t[move+1]=root->children.child_t[move];
+                            root->children.child_t[move]=NULL;
                         }
                         root->VIN[move]=*make_new_node;
                         root->children.child_t[move+1]=retval;
@@ -244,6 +251,7 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                     else
                     {
                         median=root->VIN[(k-1)/2];
+                        root->VIN[(k-1)/2]=-1;
                         new=MakeCarTreeNode();
                         new->isLeaf=FALSE;
                         int move=(k-1)/2+1,pos=0;
@@ -343,6 +351,7 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                         {
                             (linker->prev)->next=datanode;
                         }
+                        linker->prev=datanode;
                     }
                 }
                 
@@ -509,7 +518,9 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                             for(shift=check_for_empty-1;shift>i-1;shift--)
                             {
                                 root->VIN[shift+1]=root->VIN[shift];
+                                root->VIN[shift]=-1;
                                 root->children.child_l[shift+2]=root->children.child_l[shift+1];
+                                root->children.child_l[shift+1]=NULL;
                             }
                             root->VIN[i]=newnode->car[0].VIN;
                             root->children.child_l[i+1]=newnode;
@@ -568,7 +579,9 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                                 for(; copy<k-1&&copy > i ;copy--)
                                 {
                                     root->VIN[copy]=root->VIN[copy-1];
+                                    root->VIN[copy-1]=-1;
                                     root->children.child_l[copy+1]=root->children.child_l[copy];
+                                    root->children.child_l[copy]=NULL;
                                 }
                                 
                                 root->children.child_l[copy+1]=newnode;
