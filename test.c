@@ -176,7 +176,7 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
             else
             {
                 //Check if this node has space
-                int check_space=i+1,res=0;
+                int check_space=i,res=0;
                 while(check_space<k-1 && res==0)
                 {
                     if(root->VIN[check_space]==-1)
@@ -363,7 +363,7 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                 
             }
             //int done=0;       
-            if(datanode->car[j].VIN==-1)//free space exists in this datanode
+            if(j<c && datanode->car[j].VIN==-1)//free space exists in this datanode,//ADD j<c && ...(present condition)
             {
                 datanode->car[j]=car;
                 
@@ -511,17 +511,13 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
                         //The else part is when the tree node doesnt have any space
                         else
                         {
-                            //Write correct loops ...currently they seem to be buggy->done
+                            
                             int median;
-                            //-----buggy part
-                            /*
-                            int value=(root->children.child_l[i+1])->car[0].VIN;
-                            */
-                            //
+                            
                             Car_Tree_Node *leafnode=NULL;
                             //Split the tree node into 2 about the median 
                             //Find median
-                            //Ignore this comment->//i+1 is the ptr whose 1st value will be pushed up to compare for the median
+                            
                             if(i==(k-1)/2)//K is typically odd
                             {
                                 //median is in this node
