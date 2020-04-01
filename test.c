@@ -1,8 +1,46 @@
+//Purpose of this file is just to debug the various code parts
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include"structs.h"
-#include"car_database.h"
+#define MAX_CAR_NAME 20
+#define k 3//try to make a 5-ary B+ tree
+//Max 3 children
+#define c 3//capacity for B+ data node
+
+typedef enum {PETROL,DIESEL} Fuel_Type;
+typedef enum {HATCHBACK,SEDAN,SUV} Car_Type;
+typedef enum {RED,BLUE,YELLOW} Car_Color;
+typedef enum {FAILURE,SUCCESS} status_code;
+typedef enum {FALSE,TRUE} Bool;
+
+struct Car
+{
+    int VIN;//Unique Key in database,-1 if invalid
+    char Name[MAX_CAR_NAME];
+    Car_Color color;
+    Fuel_Type fuel;
+    Car_Type type;
+};
+
+typedef struct Car Car;
+
+typedef struct Car_Data_Node
+{
+    Car car[c];
+    struct Car_Data_Node *next;
+    struct Car_Data_Node *prev;
+}Car_Data_Node;
+
+typedef struct Car_Tree_Node
+{
+    int VIN[k-1];
+    Bool isLeaf;
+    union Child_Pointers
+    {
+        struct Car_Tree_Node *child_t[k];
+        struct Car_Data_Node *child_l[k];
+    }children;
+}Car_Tree_Node;
 
 Car MakeCar(int VIN,char Name[],Car_Color color,Fuel_Type fuel,Car_Type type);
 Car_Data_Node* MakeCarDataNode();
@@ -610,7 +648,6 @@ Car_Tree_Node* DeleteCar(Car_Tree_Node *root,int VIN)
 }
 
 
-
 Car_Tree_Node* DeleteFromCarDatabase(Car_Tree_Node *root,Car car,Bool *less)//call with false
 {
     Car_Tree_Node *retval=root;
@@ -1092,4 +1129,134 @@ Car_Tree_Node* DeleteFromCarDatabase(Car_Tree_Node *root,Car car,Bool *less)//ca
     return retval;
 }
 
-//-------------------------------End of delete functions--------------------------------------------
+
+//*****************This function reads car data from a file*************************************
+Car_Tree_Node* Init_Cars(char filename[])
+{
+    Car_Tree_Node *root=NULL;
+    FILE *fp;
+    int VIN,color,fuel,type;
+    char Name[MAX_CAR_NAME];
+    Car car;
+    fp=fopen(filename,"r");
+    if(fp!=NULL)
+    {
+        while(fscanf(fp,"%d%d%d%d%s",&VIN,&color,&fuel,&type,Name)!=EOF)
+        {
+            car=MakeCar(VIN,Name,color,fuel,type);
+            root=InsertCar(root,car);
+        }
+    }
+    else
+    {
+        printf("\n Error In opening file!");
+    }
+    fclose(fp);
+    return root;
+}
+
+void Print(Car_Tree_Node *root)
+{
+    Car_Data_Node *d;
+    while(root->isLeaf==FALSE)
+    {
+        root=root->children.child_t[0];
+    }
+    if(root->children.child_l[0]!=NULL)
+    {
+        d=root->children.child_l[0];
+
+    }
+    else
+    {
+        d=root->children.child_l[1];
+    }
+    
+    while(d!=NULL)
+    {
+        int i=0;
+        while (i<c&&d->car[i].VIN!=-1)
+        {
+            printf("\nCar VIN:%d",d->car[i].VIN);
+            printf(", Car Name:%s",d->car[i].Name);
+            printf(", Color:");
+            if(d->car[i].color==RED)
+            {
+                printf("RED");
+            }
+            else if(d->car[i].color==BLUE)
+            {
+                printf("BLUE");
+            }
+            else if(d->car[i].color==YELLOW)
+            {
+                printf("YELLOW");
+            }
+            printf(", Fuel Type:");
+            if(d->car[i].fuel==PETROL)
+            {
+                printf("PETROL");
+            }
+            else
+            {
+                printf("DIESEL");
+            }
+            printf(", CARTYPE:");
+            if(d->car[i].type==SEDAN)
+            {
+                printf("SEDAN");
+            }
+            else if(d->car[i].type==SUV)
+            {
+                printf("SUV");
+            }
+            else
+            {
+                printf("HATCHBACK");
+            }
+            i++;
+        }
+        d=d->next;
+    }
+}
+
+void main()
+{
+    //Just to test insert
+    Car_Tree_Node *root=NULL;
+    Car car;
+    int done=1,VIN,opt=0;
+    root=Init_Cars("Cars.txt");
+    Print(root);
+    while(done)
+    {
+        printf("\nEnter option(1 for insertion ,2 for deletion):");
+        scanf("%d",&opt);
+        switch(opt)
+        {
+            case 1:
+                printf("\nEnter DATa:");
+                scanf("%d",&VIN);
+                car=MakeCar(VIN,"a",YELLOW,DIESEL,SEDAN);
+                root=InsertCar(root,car);
+                Print(root);
+                break;
+
+            case 2:
+                printf("\nEnter DATa:");
+                scanf("%d",&VIN);
+                root=DeleteCar(root,VIN);
+                Print(root);
+                break;
+
+            default:
+                done=0;
+                break;
+
+        }
+        
+        
+        //printf("\nDO u want to continue?(0 to exit)");
+        //scanf("%d",&done);
+    }
+}
