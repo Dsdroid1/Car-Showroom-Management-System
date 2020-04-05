@@ -1,6 +1,7 @@
 #include"car_database.h"
 
 Car MakeCar(int VIN,char Name[],Car_Color color,Fuel_Type fuel,Car_Type type);
+void setPrice(Car car,int price);
 Car_Data_Node* MakeCarDataNode();
 Car_Tree_Node* MakeCarTreeNode();
 Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_node);
@@ -13,13 +14,19 @@ Car_Tree_Node* DeleteCar(Car_Tree_Node *root,int VIN);
 Car MakeCar(int VIN,char Name[],Car_Color color,Fuel_Type fuel,Car_Type type)
 {
     Car C;
-    
+    C.price=0;
     C.VIN=VIN;
     strcpy(C.Name,Name);
     C.color=color;
     C.fuel=fuel;
     C.type=type;
+    C.Customer_ID=-1;
     return C;
+}
+
+void setPrice(Car car,int price)
+{
+    car.price=price;
 }
 
 Car_Data_Node* MakeCarDataNode()//Make empty car_data_node

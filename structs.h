@@ -15,9 +15,11 @@ struct Car
 {
     int VIN;//Unique Key in database,-1 if invalid
     char Name[MAX_CAR_NAME];
+    int price;
     Car_Color color;
     Fuel_Type fuel;
     Car_Type type;
+    int Customer_ID;
 };
 
 typedef struct Car Car;

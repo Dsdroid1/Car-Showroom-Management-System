@@ -2,8 +2,93 @@
 #include<stdlib.h>
 #include<string.h>
 #include"car_database.h"
+#include"person_database.h"
+#include"sales_person_database.h"
 
 
+//-------------------These are some auxilary functions to print data-------------------------
+void PrintCar(Car car);
+void PrintCustomer(Customer C,Car car);
+void PrintData(Sales_Person S);
+void Print_SalesPerson_Bio(Sales_Person_Node *root);
+void PrintShowroom_SalesPersons(Car_Showroom A);
+Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr);
+//-------------------------------------------------------------------------------------------
+
+void main()
+{
+    
+    Car_Showroom A;
+    A.Customer_Database=NULL;
+    A.Sales_Person_Database=NULL;
+    A.Sold_Cars_Database=NULL;
+    A.Stock_Cars_Database=NULL;
+    Sales_Person S;
+
+    //------To add SalesPerson to a given showroom--------------------------------------
+    Ht_Direction h=NO_CHANGE;
+    S=InitSalesPerson("SaleA1.txt",&A.Sold_Cars_Database,&A.Customer_Database);
+    A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
+    h=NO_CHANGE;
+    PrintShowroom_SalesPersons(A);
+    //----------------------------------------------------------------------------------
+
+
+    /*-------------------PART A--------------------
+    //Read Sales_person
+    //Read sold cars(during sales person)
+    //Read available cars
+    
+    ---------------------------------------------*/
+
+    /*-------------------PART B--------------------
+    //Create Sales Person.....Ask for id and password
+    //Checks to be made....len(Pass)<6 and id not already present
+    //Use InsertIntoSalesPersonDatabase method to complete
+    ---------------------------------------------*/
+
+        //------Find a good method to do this part
+    /*-------------------PART C--------------------
+    //For every showroom ,see which model is purchased max....
+    //Use intermediate struct like Table to accumulate count
+    ---------------------------------------------*/
+
+    /*-------------------PART D--------------------
+    //Search O(N) in SalesPerson database for one with max sales uptill now
+    //See if his incentive is 2%,make it 3% and print it
+    ---------------------------------------------*/
+
+    /*-------------------PART E--------------------
+    //Register Customer,add it to Sales Person selling database
+    //Display available cars 
+    //Select car via VIN
+    //Set customer VIN to it,
+    //Select payment type
+    //Confirm current payment(>20% selling price)
+    //Delete car from stock db,add to sold db of showroom as well as salesperson,and increase his/her sales
+    ---------------------------------------------*/
+
+    /*-------------------PART F--------------------
+    //Keep data for 2 months
+    //take their average to predict for next month
+    ---------------------------------------------*/
+
+    /*-------------------PART G--------------------
+    //Search for this VIN in stock db,
+    //If not found,search in sold db 
+    //If in sold db,we have to see who sold it
+    //Find method for that
+    ---------------------------------------------*/
+
+    /*-------------------PART H--------------------
+    //Range search on B+ tree(simultaneous on stock and sold)
+    ---------------------------------------------*/
+
+}
+
+
+
+//-------------------Definitions of the Aux. Functions------------------------------------------
 //*****************This function reads car data from a file*************************************
 Car_Tree_Node* Init_Cars(char filename[])
 {
@@ -29,45 +114,27 @@ Car_Tree_Node* Init_Cars(char filename[])
     return root;
 }
 
-void Print(Car_Tree_Node *root)
-{
-    Car_Data_Node *d;
-    while(root->isLeaf==FALSE)
-    {
-        root=root->children.child_t[0];
-    }
-    if(root->children.child_l[0]!=NULL)
-    {
-        d=root->children.child_l[0];
 
-    }
-    else
-    {
-        d=root->children.child_l[1];
-    }
-    
-    while(d!=NULL)
-    {
-        int i=0;
-        while (i<c&&d->car[i].VIN!=-1)
-        {
-            printf("\nCar VIN:%d",d->car[i].VIN);
-            printf(", Car Name:%s",d->car[i].Name);
+void PrintCar(Car car)
+{
+    printf("\nCar VIN:%d",car.VIN);
+            printf(", Car Name:%s",car.Name);
+            printf(", CarPrice:%d",car.price);
             printf(", Color:");
-            if(d->car[i].color==RED)
+            if(car.color==RED)
             {
                 printf("RED");
             }
-            else if(d->car[i].color==BLUE)
+            else if(car.color==BLUE)
             {
                 printf("BLUE");
             }
-            else if(d->car[i].color==YELLOW)
+            else if(car.color==YELLOW)
             {
                 printf("YELLOW");
             }
             printf(", Fuel Type:");
-            if(d->car[i].fuel==PETROL)
+            if(car.fuel==PETROL)
             {
                 printf("PETROL");
             }
@@ -76,11 +143,11 @@ void Print(Car_Tree_Node *root)
                 printf("DIESEL");
             }
             printf(", CARTYPE:");
-            if(d->car[i].type==SEDAN)
+            if(car.type==SEDAN)
             {
                 printf("SEDAN");
             }
-            else if(d->car[i].type==SUV)
+            else if(car.type==SUV)
             {
                 printf("SUV");
             }
@@ -88,29 +155,181 @@ void Print(Car_Tree_Node *root)
             {
                 printf("HATCHBACK");
             }
+}
+
+void PrintCustomer(Customer C,Car car)
+{
+    printf("\n");
+    printf("Customer_ID:%d",C.ID);
+    printf(", Name:%s",C.Name);
+    printf(", Contact:%s",C.Mobile);
+    printf(", Address:%s",C.Address);
+    printf(", Car Reg.No:%d",C.Car_registration);
+    printf("\n");
+    if(C.P==FULL_PAYMENT)
+    {
+        printf(", Payment:COMPLETED(%d)",car.price);
+    }
+    else if(C.P==INTEREST_RATE_9_FOR_84_MONTHS)
+    {
+        printf(", Payment:INTEREST_RATE_9_FOR_84_MONTHS(Done=%d)",20*car.price/100);
+    }
+    else if(C.P==INTEREST_RATE_8_75_FOR_60_MONTHS)
+    {
+        printf(", Payment:INTEREST_RATE_8_75_FOR_60_MONTHS(Done=%d)",20*car.price/100);
+    }
+    else
+    {
+        printf(", Payment:INTEREST_RATE_8_5_FOR_36_MONTHS(Done=%d)",20*car.price/100);
+    }
+}
+
+
+
+void Print_SalesPerson_Bio(Sales_Person_Node *root)
+{
+    if(root!=NULL)
+    {
+        Print_SalesPerson_Bio(root->left);
+        printf("\n");
+        printf("**********************************************");
+        printf("\nName:%s",root->S.Name);
+        printf("\nID:%d",root->S.ID);
+        printf("\nSales Target:%d",root->S.Sales_Target);
+        printf("\nSales Achieved:%d",root->S.Sales_Achieved);
+        printf("\nSales Commission:%d",root->S.Sales_Commission);
+        printf("\nCars sold:");
+        PrintData(root->S);
+        printf("\n**********************************************");
+        Print_SalesPerson_Bio(root->right);
+    }
+}
+
+void PrintShowroom_SalesPersons(Car_Showroom A)
+{
+    Sales_Person_Node* Sales_Person_Database;
+    Sales_Person_Database=A.Sales_Person_Database;
+    //Inorder traversal on this...
+    Print_SalesPerson_Bio(A.Sales_Person_Database);
+}
+
+
+//-------------------For part A-------------------------
+Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr)
+{
+    FILE *fp;
+    Sales_Person S;
+    Car_Tree_Node *Sold_Cars_Database;
+    Sold_Cars_Database=*Sold_Cars_Databaseptr;
+    Customer_Node *Customer_Database;
+    Customer_Database=*Customer_Databaseptr;
+    S.Customer_Database=NULL;
+    S.Sold_Cars_Database=NULL;
+    S.Sales_Achieved=0;
+    S.Sales_Commission=0;
+
+    fp=fopen(Filename,"r");
+
+    if(fp!=NULL)
+    {
+        fscanf(fp,"%d%s%s%d",&S.ID,S.Password,S.Name,&S.Sales_Target);
+    }
+
+    int flag=0;
+    int color,fuel,type,payment;
+    Customer C;
+    Car car;
+    //From next line,scan car-customer
+    while(flag==0)
+    {
+        if(fscanf(fp,"%d%s%d%d%d%d%d",&car.VIN,car.Name,&car.price,&color,&fuel,&type,&car.Customer_ID)!=EOF)
+        {
+            flag=0;
+            car.color=color;
+            car.fuel=fuel;
+            car.type=type;
+            //Insert car into sales person's car database and also sold cars database
+            S.Sold_Cars_Database=InsertCar(S.Sold_Cars_Database,car);
+            Sold_Cars_Database=InsertCar(Sold_Cars_Database,car);
+
+            //Now scan its corresponding customer
+            if(fscanf(fp,"%d%s%s%s%d%d%d",&C.ID,C.Name,C.Mobile,C.Address,&C.Sold_Car_VIN,&C.Car_registration,&payment)!=EOF)
+            {
+                C.P=payment;
+                if(C.P==FULL_PAYMENT)
+                {
+                    S.Sales_Achieved+=car.price;
+                    S.Sales_Commission+=(2*car.price)/100;
+                }
+                else
+                {
+                    //Bought on EMI....20% down payment
+                    S.Sales_Achieved+=20*car.price/100;//diviode by 100
+                    S.Sales_Commission+=20*(2*car.price)/10000;
+                }
+                Ht_Direction ht=NO_CHANGE;
+                S.Customer_Database=InsertIntoCustomerDatabase(S.Customer_Database,C,&ht);
+                ht=NO_CHANGE;
+                Customer_Database=InsertIntoCustomerDatabase(Customer_Database,C,&ht);
+            }
+            else
+            {
+                flag=1;
+            }
+        }
+        else
+        {
+            flag=1;
+        }
+    }
+    *Sold_Cars_Databaseptr=Sold_Cars_Database;
+    *Customer_Databaseptr=Customer_Database;
+    return S;
+}
+
+void PrintData(Sales_Person S)
+{
+    //Prints The data of who bought which car and stuff
+    Car_Data_Node *d=NULL;
+    Car_Tree_Node *tptr=NULL;
+    tptr=S.Sold_Cars_Database;
+
+    while(tptr->isLeaf==FALSE)
+    {
+        tptr=tptr->children.child_t[0];
+    }
+    if(tptr->children.child_l[0]==NULL)
+    {
+        d=tptr->children.child_l[1];
+    }
+    else
+    {
+        d=tptr->children.child_l[0];
+    }
+
+    int Customer_ID=-1,i=0;
+    Customer C;
+    while(d!=NULL)
+    {
+        i=0;
+        while(i<c && d->car[i].VIN!=-1)
+        {
+            printf("\n-----------------------------------------");
+            Customer_ID=d->car[i].Customer_ID;
+            PrintCar(d->car[i]);
+            //Search for customer in customer database
+            C=SearchCustomer(S.Customer_Database,Customer_ID);
+            //print customer details
+            printf("\nSOLD TO:");
+            if(C.ID!=-1)
+            {
+                PrintCustomer(C,d->car[i]);
+            }
+           
             i++;
         }
         d=d->next;
     }
 }
 
-void main()
-{
-    //Just to test insert
-    Car_Tree_Node *root=NULL;
-    Car car;
-    int done=1,VIN;
-    root=Init_Cars("Cars.txt");
-    Print(root);
-    while(done)
-    {
-        printf("\nEnter Car data:");
-        scanf("%d",&VIN);
-        //car=MakeCar(VIN,"a",YELLOW,DIESEL,SEDAN);
-        //root=InsertCar(root,car);
-        root=DeleteCar(root,VIN);
-        Print(root);
-        //printf("\nDO u want to continue?(0 to exit)");
-        //scanf("%d",&done);
-    }
-}
+//----------------------------ENd of printing aux functions--------------------------

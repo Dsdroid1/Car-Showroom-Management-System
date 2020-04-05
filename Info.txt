@@ -1,2 +1,11 @@
 Cars.txt file has data of the form:
 VIN (Code)Color(0-2) (Code)Fuel(0-1) (Code)Type(0-2) Name
+
+SaleA1.txt(Means Showroom A,Sales Person 1)
+First Line:ID password Name Sales_Target(All details of Sales Person)
+Next Lines:
+    (Car Details) VIN CarName Price Color(0-2) Fuel(0-1) Type(0-2) Customer_ID
+    (Customer Details) CustomerID CustomerName CustomerContact Address CAR_VIN CAR_REG_NO PaymentType(0-3)
+
+Compile the project by 
+    gcc main.c car_database.c sales_person_database.c person_database.c
