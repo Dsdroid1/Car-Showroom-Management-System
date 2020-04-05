@@ -15,6 +15,12 @@ void PrintShowroom_SalesPersons(Car_Showroom A);
 Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr);
 //-------------------------------------------------------------------------------------------
 
+//------------------Main Functions to do stuff-----------------------------------------------
+void AddSalesPerson(Car_Showroom A);
+void LocateMaxSales(Sales_Person_Node *root,int *curr_highest,Sales_Person_Node **retval);
+void FindMaxSales(Car_Showroom A);
+//-------------------------------------------------------------------------------------------
+
 void main()
 {
     
@@ -333,3 +339,62 @@ void PrintData(Sales_Person S)
 }
 
 //----------------------------ENd of printing aux functions--------------------------
+
+//--------"Mainstream Functions"-----------------------------------------------------
+
+void AddSalesPerson(Car_Showroom A)
+{
+    Sales_Person S;
+    S.Customer_Database=NULL;
+    S.Sold_Cars_Database=NULL;
+    S.Sales_Achieved=0;
+    S.Sales_Commission=0;
+    S.Sales_Target=20000;//Some predefined target
+    printf("\nEnter The Sales Person's ID:");
+    scanf("%d",&S.ID);
+    printf("\nEnter the Sales Person's Name:");
+    scanf("%s",S.Name);
+    do{
+    printf("\nWhat should be set as your password(6 chars at max):");
+    scanf("%d",S.Password);
+    }while(strlen(S.Password)<=7);
+    Ht_Direction h=NO_CHANGE;
+    A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
+}
+
+void LocateMaxSales(Sales_Person_Node *root,int *curr_highest,Sales_Person_Node **retval)
+{
+    //Sales_Person_Node *retval=NULL;
+    if(root!=NULL)
+    {
+        if(root->left!=NULL)
+        {
+            LocateMaxSales(root->left,curr_highest,retval);
+        }
+        if(root->S.Sales_Achieved > *curr_highest)
+        {
+            *retval=root;
+            *curr_highest=root->S.Sales_Achieved;
+        }
+        if(root->right!=NULL)
+        {
+            LocateMaxSales(root->right,curr_highest,retval);
+        }
+    }
+    return retval;
+}
+
+void FindMaxSales(Car_Showroom A)
+{
+    Sales_Person_Node *retval=NULL;
+    int current_max_sales=0;
+    LocateMaxSales(A.Sales_Person_Database,&current_max_sales,&retval);
+    //retval is the person who has highest sale
+    (retval->S.Sales_Commission)+=(retval->S.Sales_Achieved)/100;//Award 1pc incentive
+    printf("\nThe person with highest sales is :");
+    printf("\nName:%s",retval->S.Name);
+    printf("\nID:%d",retval->S.ID);
+    printf("\nTotal Commission(Including 1pc extra incentive):%d",retval->S.Sales_Commission);
+}
+
+//-------------------------------------------------------------------------
