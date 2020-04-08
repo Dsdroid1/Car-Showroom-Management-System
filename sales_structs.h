@@ -58,6 +58,8 @@ typedef struct Showroom
 {
     struct Sales_Person_Node *Sales_Person_Database;
     Car_Tree_Node *Sold_Cars_Database;
+    int no_of_cars_sold;
+    int no_of_cars_available;
     Car_Tree_Node *Stock_Cars_Database;
     Customer_Node *Customer_Database;//Maybe Customer database
 }Car_Showroom;

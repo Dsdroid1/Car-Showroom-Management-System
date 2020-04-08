@@ -5,6 +5,14 @@
 #include"person_database.h"
 #include"sales_person_database.h"
 
+#define MAX_NUM_OF_CARS_IN_DATABASE 20
+
+
+struct Dictionary
+{
+    char car_name[MAX_CAR_NAME];
+    int count;
+};
 
 //-------------------These are some auxilary functions to print data-------------------------
 void PrintCar(Car car);
@@ -12,13 +20,24 @@ void PrintCustomer(Customer C,Car car);
 void PrintData(Sales_Person S);
 void Print_SalesPerson_Bio(Sales_Person_Node *root);
 void PrintShowroom_SalesPersons(Car_Showroom A);
-Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr);
+Car_Tree_Node* Init_Cars(char filename[]);
+Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr,int *no_of_cars_sold);
 //-------------------------------------------------------------------------------------------
 
 //------------------Main Functions to do stuff-----------------------------------------------
 void AddSalesPerson(Car_Showroom A);
 void LocateMaxSales(Sales_Person_Node *root,int *curr_highest,Sales_Person_Node **retval);
 void FindMaxSales(Car_Showroom A);
+void FindMaxCount(Car_Showroom A);
+void MakeDictionary(Car_Tree_Node *root,struct Dictionary dptr[],int *num_valid_entries);
+void FindMaxCountAcrossShowrooms(Car_Showroom A,Car_Showroom B,Car_Showroom C);
+void SearchCarByVIN(Car_Showroom A,int VIN);
+int GetThisMonthSales(Sales_Person_Node *root);
+void GetPrevMonthsData(Car_Showroom A);
+void StoreThisMonthData(Car_Showroom A);
+status_code LoginAsSalesPerson(Car_Showroom A);
+void InitUI(Sales_Person S,Car_Showroom A);
+void ShowStockCars(Car_Showroom A);
 //-------------------------------------------------------------------------------------------
 
 void main()
@@ -29,37 +48,55 @@ void main()
     A.Sales_Person_Database=NULL;
     A.Sold_Cars_Database=NULL;
     A.Stock_Cars_Database=NULL;
+    A.no_of_cars_sold=0;
+    A.no_of_cars_available=0;
     Sales_Person S;
 
     //------To add SalesPerson to a given showroom--------------------------------------
     Ht_Direction h=NO_CHANGE;
-    S=InitSalesPerson("SaleA1.txt",&A.Sold_Cars_Database,&A.Customer_Database);
+    S=InitSalesPerson("SaleA1.txt",&A.Sold_Cars_Database,&A.Customer_Database,&A.no_of_cars_sold);
     A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
     h=NO_CHANGE;
+    
+    A.Stock_Cars_Database=Init_Cars("Cars.txt");
+
     PrintShowroom_SalesPersons(A);
+    
+    FindMaxSales(A);
+    
+    FindMaxCount(A);
+
+    SearchCarByVIN(A,2);
+
+    GetPrevMonthsData(A);
+    //StoreThisMonthData(A);
+
+    LoginAsSalesPerson(A);
+    PrintShowroom_SalesPersons(A);
+    ShowStockCars(A);
     //----------------------------------------------------------------------------------
 
 
-    /*-------------------PART A--------------------
+    /*-------------------PART A--------------------//Make an enclosing function//
     //Read Sales_person
     //Read sold cars(during sales person)
     //Read available cars
     
     ---------------------------------------------*/
 
-    /*-------------------PART B--------------------
+    /*-------------------PART B--------------------//FN DONE->AddSalesPerson//
     //Create Sales Person.....Ask for id and password
     //Checks to be made....len(Pass)<6 and id not already present
     //Use InsertIntoSalesPersonDatabase method to complete
     ---------------------------------------------*/
 
         //------Find a good method to do this part
-    /*-------------------PART C--------------------
+    /*-------------------PART C--------------------//FN DONE->FindMaxCountAcrossShowrooms//
     //For every showroom ,see which model is purchased max....
     //Use intermediate struct like Table to accumulate count
     ---------------------------------------------*/
 
-    /*-------------------PART D--------------------
+    /*-------------------PART D--------------------//********FN DONE->FindMaxSales//
     //Search O(N) in SalesPerson database for one with max sales uptill now
     //See if his incentive is 2%,make it 3% and print it
     ---------------------------------------------*/
@@ -74,12 +111,12 @@ void main()
     //Delete car from stock db,add to sold db of showroom as well as salesperson,and increase his/her sales
     ---------------------------------------------*/
 
-    /*-------------------PART F--------------------
+    /*-------------------PART F--------------------//FN DONE->GetPrevMonthsData,StoreThisMonthData//
     //Keep data for 2 months
     //take their average to predict for next month
     ---------------------------------------------*/
 
-    /*-------------------PART G--------------------
+    /*-------------------PART G--------------------//FN DONE->SearchByCarVIN//
     //Search for this VIN in stock db,
     //If not found,search in sold db 
     //If in sold db,we have to see who sold it
@@ -100,15 +137,16 @@ Car_Tree_Node* Init_Cars(char filename[])
 {
     Car_Tree_Node *root=NULL;
     FILE *fp;
-    int VIN,color,fuel,type;
+    int VIN,color,fuel,type,price;
     char Name[MAX_CAR_NAME];
     Car car;
     fp=fopen(filename,"r");
     if(fp!=NULL)
     {
-        while(fscanf(fp,"%d%d%d%d%s",&VIN,&color,&fuel,&type,Name)!=EOF)
+        while(fscanf(fp,"%d%d%d%d%d%s",&VIN,&color,&fuel,&type,&price,Name)!=EOF)
         {
             car=MakeCar(VIN,Name,color,fuel,type);
+            car.price=price;
             root=InsertCar(root,car);
         }
     }
@@ -221,7 +259,7 @@ void PrintShowroom_SalesPersons(Car_Showroom A)
 
 
 //-------------------For part A-------------------------
-Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr)
+Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr,int *no_of_cars_sold)
 {
     FILE *fp;
     Sales_Person S;
@@ -257,7 +295,7 @@ Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databasep
             //Insert car into sales person's car database and also sold cars database
             S.Sold_Cars_Database=InsertCar(S.Sold_Cars_Database,car);
             Sold_Cars_Database=InsertCar(Sold_Cars_Database,car);
-
+            (*no_of_cars_sold)=(*no_of_cars_sold)+1;
             //Now scan its corresponding customer
             if(fscanf(fp,"%d%s%s%s%d%d%d",&C.ID,C.Name,C.Mobile,C.Address,&C.Sold_Car_VIN,&C.Car_registration,&payment)!=EOF)
             {
@@ -356,7 +394,7 @@ void AddSalesPerson(Car_Showroom A)
     scanf("%s",S.Name);
     do{
     printf("\nWhat should be set as your password(6 chars at max):");
-    scanf("%d",S.Password);
+    scanf("%s",S.Password);
     }while(strlen(S.Password)<=7);
     Ht_Direction h=NO_CHANGE;
     A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
@@ -381,7 +419,6 @@ void LocateMaxSales(Sales_Person_Node *root,int *curr_highest,Sales_Person_Node 
             LocateMaxSales(root->right,curr_highest,retval);
         }
     }
-    return retval;
 }
 
 void FindMaxSales(Car_Showroom A)
@@ -391,10 +428,417 @@ void FindMaxSales(Car_Showroom A)
     LocateMaxSales(A.Sales_Person_Database,&current_max_sales,&retval);
     //retval is the person who has highest sale
     (retval->S.Sales_Commission)+=(retval->S.Sales_Achieved)/100;//Award 1pc incentive
+    printf("\n---------------------------------------------------------------------");
     printf("\nThe person with highest sales is :");
     printf("\nName:%s",retval->S.Name);
     printf("\nID:%d",retval->S.ID);
     printf("\nTotal Commission(Including 1pc extra incentive):%d",retval->S.Sales_Commission);
+    printf("\n---------------------------------------------------------------------");
 }
 
+
+
+
+void MakeDictionary(Car_Tree_Node *root,struct Dictionary dptr[],int *num_valid_entries)
+{
+    if(root!=NULL)
+    {
+        Car_Data_Node *data=NULL;
+        while(root->isLeaf==FALSE)
+        {
+            root=root->children.child_t[0];
+        }
+        if(root->children.child_l[0]!=NULL)
+        {
+            data=root->children.child_l[0];
+        }
+        else
+        {
+            data=root->children.child_l[1];
+        }
+        int i=0;
+        int j=0,found=0;
+        while(data!=NULL)
+        {
+            i=0;
+            while(i<c && data->car[i].VIN != -1)
+            {
+                //Search for this name in dictionary
+                j=0;
+                found=0;
+                while(j<*num_valid_entries && found==0)
+                {
+                    if(strcmp(data->car[i].Name,dptr[j].car_name)==0)
+                    {
+                        dptr[j].count++;
+                        found=1;
+                    }
+                    else
+                    {
+                        j++;
+                    }
+                }
+                if(found==0)
+                {
+                    strcpy(dptr[*num_valid_entries].car_name,data->car[i].Name);
+                    dptr[*num_valid_entries].count=1;
+                    (*num_valid_entries)=(*num_valid_entries)+1;
+                }
+                i++;
+            }
+            data=data->next;
+        }
+    }
+}
+
+void FindMaxCount(Car_Showroom A)
+{
+    struct Dictionary Car_Data[MAX_NUM_OF_CARS_IN_DATABASE];//make init dict fn...
+    struct Dictionary D;
+    int num_valid_entries=0;
+    //Traverse the tree to make this dictionary
+    MakeDictionary(A.Sold_Cars_Database,Car_Data,&num_valid_entries);
+    int i=0,max_count=0;
+    for(i=0;i<num_valid_entries;i++)
+    {
+        if(Car_Data[i].count > max_count)
+        {
+            max_count=Car_Data[i].count;
+            D=Car_Data[i];
+        }
+    }
+    //This function has to be modified to take input as 3 showrooms,make their respective dicts,then merge these dicts
+    printf("\n---------------------------------------------------------------------");
+    printf("\nMax Sold Car:%s",D.car_name);
+    printf("\nSold Units:%d",D.count);
+    printf("\n---------------------------------------------------------------------");
+}
+
+void FindMaxCountAcrossShowrooms(Car_Showroom A,Car_Showroom B,Car_Showroom C)
+{
+    struct Dictionary Car_Data[MAX_NUM_OF_CARS_IN_DATABASE];
+    int num_valid_entries=0;
+    MakeDictionary(A.Sold_Cars_Database,Car_Data,&num_valid_entries);
+    MakeDictionary(B.Sold_Cars_Database,Car_Data,&num_valid_entries);
+    MakeDictionary(C.Sold_Cars_Database,Car_Data,&num_valid_entries);
+    int i=0,max_count=0;
+    struct Dictionary D;
+    for(i=0;i<num_valid_entries;i++)
+    {
+        if(Car_Data[i].count > max_count)
+        {
+            max_count=Car_Data[i].count;
+            D=Car_Data[i];
+        }
+    }
+    printf("\n----------------------------------------------------");
+    printf("\nMax Sold Car:%s",D.car_name);
+    printf("\nSold Units:%d",D.count);
+    printf("\n----------------------------------------------------");
+}
+
+void SearchCarByVIN(Car_Showroom A,int VIN)
+{
+    Car car;
+    car.VIN=-1;
+    //int VIN=23;//Scan search value
+    car=SearchCarDatabase(A.Sold_Cars_Database,VIN);
+    printf("\n---------------------------------------------------------------------");
+    if(car.VIN==-1)
+    {
+        //Search in stock database...
+        car=SearchCarDatabase(A.Stock_Cars_Database,VIN);
+        if(car.VIN!=-1)
+        {
+            printf("\nCar details:");
+            PrintCar(car);
+        }
+        else
+        {
+            printf("\n Not Found");
+        }
+    }
+    else
+    {
+        printf("\nCar details:");
+        PrintCar(car);
+        Customer C=SearchCustomer(A.Customer_Database,car.Customer_ID);
+        printf("\nSold To:");
+        PrintCustomer(C,car);
+    }
+    printf("\n---------------------------------------------------------------------");
+}
+
+
+int GetThisMonthSales(Sales_Person_Node *root)
+{
+    int retval=0;
+    if(root!=NULL)
+    {
+        retval=root->S.Sales_Achieved+GetThisMonthSales(root->left)+GetThisMonthSales(root->right);
+    }
+    return retval;
+}
+
+void GetPrevMonthsData(Car_Showroom A)
+{
+    FILE *fp;
+    fp=fopen("PreviousSales.txt","r");
+    int sum=0,no_of_months=0,temp=0;
+    while(fscanf(fp,"%d",&temp)!=EOF)
+    {
+        sum+=temp;
+        no_of_months++;
+    }
+    fclose(fp);
+    int Prediction=0,Current=0;
+    Prediction=sum/no_of_months;
+    Current=GetThisMonthSales(A.Sales_Person_Database);
+    printf("\n*************************************");
+    printf("\nCurrent Months Sales:%d",Current);
+    printf("\nPrediction According to previous months:%d",Prediction);
+    printf("\n*************************************");
+}
+
+void StoreThisMonthData(Car_Showroom A)
+{
+    int Current=0;
+    Current=GetThisMonthSales(A.Sales_Person_Database);
+    FILE *fp;
+    fp=fopen("PreviousSales.txt","a");
+    fprintf(fp,"\n%d",Current);
+    fclose(fp);
+}
+
+Car_Data_Node* GetDataPointer(Car_Tree_Node *root,int VIN)
+{
+    //Like search ,but returns the datapointer
+    Car_Data_Node *retval=NULL;
+    if(root!=NULL)
+    {
+        if(root->isLeaf==FALSE)
+        {
+            int i=0,found=0;
+            while(i<k-1 && root->VIN[i]!=-1 && found==0)
+            {
+                if(root->VIN[i] <=  VIN)
+                {
+                    i++;
+                }
+                else
+                {
+                    found=1;
+                }
+            }
+            //to chase the ith pointer
+            retval=GetDataPointer(root->children.child_t[i],VIN);
+        }
+        else
+        {
+            Car_Data_Node *data;
+            //Find which ptr to chase
+            int i=0,found=0;
+            while(i<c && root->VIN[i]!=-1 && found==0)
+            {
+                if(root->VIN[i] <=  VIN)
+                {
+                    i++;
+                }
+                else
+                {
+                    found=1;
+                }
+            }
+            data=root->children.child_l[i];
+            //Search for entry in datanode
+            retval=data;
+        }
+    }
+    return retval;
+}
+
+
+void RangeSearchOfCars(Car_Showroom A,int min,int max)//Currently under dev.
+{
+    Car_Data_Node *sold=NULL,*stock=NULL;
+    sold=GetDataPointer(A.Sold_Cars_Database,min);
+    stock=GetDataPointer(A.Stock_Cars_Database,min);
+    int sold_trav=0,stock_trav=0,valid=0;
+    
+   
+
+}
+
+status_code LoginAsSalesPerson(Car_Showroom A)
+{
+    int id;
+    char password[7];
+    status_code sc=SUCCESS;
+    printf("\nEnter your Sales Id:");
+    scanf("%d",&id);
+    //Sales_Person_Node *database=A.Sales_Person_Database;
+    Sales_Person S;
+    S=SearchSalesPerson(A.Sales_Person_Database,id);
+    if(S.ID==-1)
+    {
+        printf("\nError!This sales person does not exist!");
+        sc=FAILURE;
+    }
+    else
+    {
+        //Check for password
+        printf("\nEnter Your Password:");
+        scanf("%s",password);
+        if(strcmp(S.Password,password)==0)
+        {
+            printf("\n--------------------------------");
+            printf("\nSuccessful Login");
+            sc=SUCCESS;
+            //Init UI
+            InitUI(S,A);
+        }
+        else
+        {
+            printf("\nWrong Credentials");
+            sc=FAILURE;
+        }
+    }
+    return sc;
+}
+
+void ShowStockCars(Car_Showroom A)
+{
+    Car_Data_Node *d=NULL;
+    Car_Tree_Node *tptr=NULL;
+    tptr=A.Stock_Cars_Database;
+    if(tptr!=NULL)
+    {
+        while(tptr->isLeaf==FALSE)
+        {
+            tptr=tptr->children.child_t[0];
+        }
+        if(tptr->children.child_l[0]==NULL)
+        {
+            d=tptr->children.child_l[1];
+        }
+        else
+        {
+            d=tptr->children.child_l[0];
+        }
+
+        int i=0;
+        while(d!=NULL)
+        {
+            i=0;
+            while(i<c && d->car[i].VIN!=-1)
+            {
+                printf("\n-----------------------------------------");
+                PrintCar(d->car[i]);
+                i++;
+            }
+            d=d->next;
+        }
+    }
+}
+
+void InitUI(Sales_Person S,Car_Showroom A)
+{
+    int choice;
+    int done=0;
+    Customer C;
+    int id,VIN;
+    while(!done)
+    {
+        printf("\nWelcome,%s",S.Name);
+        printf("\nWhat would you like to do?");
+        printf("\n1.Browse stock cars");
+        printf("\n2.Sell car to customer");
+        scanf("%d",&choice);
+        switch(choice)
+        {
+            case 1:
+                ShowStockCars(A);
+                break;
+
+            case 2:
+                
+                
+                printf("\nEnter Customer ID:");
+                scanf("%d",&C.ID);
+                id=C.ID;
+                C=SearchCustomer(A.Customer_Database,id);
+                if(C.ID!=-1)
+                {
+                    //Customer exists
+                    printf("\nThis customer has already purchased something this month....");
+                }
+                else
+                {
+                    C.ID=id;
+                    printf("\nEnter customer details:");
+                    printf("\nName:");
+                    scanf("%s",C.Name);
+                    do
+                    {
+                        printf("\nEnter Valid Mobile:");
+                        scanf("%s",C.Mobile);
+                    }while(strlen(C.Mobile)!=10);//10
+                    printf("\nAddress:");
+                    scanf("%s",C.Address);
+                    
+                    ShowStockCars(A);
+                    printf("\nEnter the Car VIN to be purchased:");
+                    scanf("%d",&VIN);
+                    Car car;
+                    int p_type;
+                    car.VIN=-1;
+                    //if VIN is valid,then 
+                    car=SearchCarDatabase(A.Stock_Cars_Database,VIN);
+                    if(car.VIN!=-1)
+                    {
+                        printf("Enter type of payment:");
+                        printf("\n1.Full");
+                        printf("\n2.INTEREST RATE OF 9 for 84 months");
+                        printf("\n3.INTEREST RATE OF 8.75 for 60 months");
+                        printf("\n4.INTEREST RATE OF 8.5 for 36 months");
+                        scanf("%d",&p_type);
+                        if(p_type>4 || p_type < 1)
+                        {
+                            p_type=0;//Full payment
+                        }
+                        C.P=p_type-1;
+                        if(C.P==FULL_PAYMENT)
+                        {
+                            S.Sales_Achieved+=car.price;
+                            S.Sales_Commission+=2*car.price/100;
+                        }
+                        else
+                        {
+                            //20% down payment
+                            S.Sales_Achieved+=20*car.price/100;
+                            S.Sales_Commission+=20*2*car.price/10000;
+                        }
+                        C.Car_registration=(C.ID*999+car.VIN*9)%10000;
+                        Ht_Direction h=NO_CHANGE;
+                        InsertIntoCustomerDatabase(A.Customer_Database,C,&h);
+                        h=NO_CHANGE;
+                        InsertIntoCustomerDatabase(S.Customer_Database,C,&h);
+                        DeleteCar(A.Stock_Cars_Database,VIN);
+                        car.Customer_ID=id;
+                        C.Sold_Car_VIN=VIN;
+                        InsertCar(A.Sold_Cars_Database,car);
+                        InsertCar(S.Sold_Cars_Database,car);
+                        printf("\nSuccessful trasaction!");
+                        done=1;
+                    }
+                }
+                break;
+            default:
+                done=1;
+                break;
+
+
+        }
+    }
+}
 //-------------------------------------------------------------------------

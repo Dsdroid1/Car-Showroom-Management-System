@@ -246,3 +246,25 @@ Sales_Person_Node* DeleteFromSalesPersonDatabase(Sales_Person_Node* root,int ID,
 {
 
 }
+
+Sales_Person SearchSalesPerson(Sales_Person_Node *root,int ID)
+{
+    Sales_Person S;
+    S.ID=-1;//Invalid
+    if(root!=NULL)
+    {
+        if(root->S.ID < ID)
+        {
+            S=SearchSalesPerson(root->right,ID);
+        }
+        else if(root->S.ID > ID)
+        {
+            S=SearchSalesPerson(root->left,ID);
+        }
+        else
+        {
+            S=root->S;
+        }
+    }
+    return S;
+}

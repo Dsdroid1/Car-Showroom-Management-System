@@ -3,4 +3,8 @@
 10 Eren 9876543211 Shingashina 20 1234 0
 15 SpeedCar 3000 1 1 0 15
 15 Ichigo 8765432199 ABCMart 15 4635 1
+23 Tesla 2000 1 0 1 7
+7 Izuku 8987656541 UABuilding 23 3323 2
+12 Duster 2500 2 0 0 9
+9 Natsu 7887887881 DiagonAlley 12 1290 0
 

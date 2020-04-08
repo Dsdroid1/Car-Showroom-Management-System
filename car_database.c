@@ -1092,3 +1092,73 @@ Car_Tree_Node* DeleteFromCarDatabase(Car_Tree_Node *root,Car car,Bool *less)//ca
 }
 
 //-------------------------------End of delete functions--------------------------------------------
+
+//---------------Simple search function------------------------------------------------------------
+Car SearchCarDatabase(Car_Tree_Node *root,int VIN)
+{
+    Car retval;
+    retval.VIN=-1;//to indicate invalid
+    if(root!=NULL)
+    {
+        if(root->isLeaf==FALSE)
+        {
+            int i=0,found=0;
+            while(i<k-1 && root->VIN[i]!=-1 && found==0)
+            {
+                if(root->VIN[i] <=  VIN)
+                {
+                    i++;
+                }
+                else
+                {
+                    found=1;
+                }
+            }
+            //to chase the ith pointer
+            retval=SearchCarDatabase(root->children.child_t[i],VIN);
+        }
+        else
+        {
+            Car_Data_Node *data;
+            //Find which ptr to chase
+            int i=0,found=0;
+            while(i<c && root->VIN[i]!=-1 && found==0)
+            {
+                if(root->VIN[i] <=  VIN)
+                {
+                    i++;
+                }
+                else
+                {
+                    found=1;
+                }
+            }
+            data=root->children.child_l[i];
+            //Search for entry in datanode
+            i=0;
+            found=0;
+            while(i<c && found==0)
+            {
+                if(data->car[i].VIN!=-1)
+                {
+                    if(data->car[i].VIN < VIN)
+                    {
+                        i++;
+                    }
+                    else if(data->car[i].VIN > VIN)
+                    {
+                        //Does not exist
+                        found=-1;
+                        retval.VIN=-1;
+                    }
+                    else
+                    {
+                        retval=(data->car[i]);
+                        found=1;
+                    }
+                }
+            }
+        }
+    }
+    return retval;
+}

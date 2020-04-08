@@ -83,6 +83,7 @@ Customer_Node* InsertIntoCustomerDatabase(Customer_Node *root,Customer C,Ht_Dire
         else
         {
             printf("\nError,ID Already exists!");
+            //Somehow ,this error needs to be indicated to other functions.....
         }
         if(isleaf==FALSE)//Now,recursion unfolding part
         {

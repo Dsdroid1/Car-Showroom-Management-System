@@ -11,5 +11,6 @@ Car_Tree_Node* InsertIntoCarDatabase(Car_Tree_Node *root,Car car,int *make_new_n
 Car_Tree_Node* InsertCar(Car_Tree_Node *root,Car car);
 Car_Tree_Node* DeleteFromCarDatabase(Car_Tree_Node *root,Car car,Bool *less);
 Car_Tree_Node* DeleteCar(Car_Tree_Node *root,int VIN);
+Car SearchCarDatabase(Car_Tree_Node *root,int VIN);
 
 #endif
