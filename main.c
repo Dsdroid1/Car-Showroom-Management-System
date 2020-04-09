@@ -38,6 +38,8 @@ void StoreThisMonthData(Car_Showroom A);
 status_code LoginAsSalesPerson(Car_Showroom A);
 void InitUI(Sales_Person S,Car_Showroom A);
 void ShowStockCars(Car_Showroom A);
+Car_Data_Node* GetDataPointer(Car_Tree_Node *root,int VIN);
+void RangeSearchOfCars(Car_Showroom A,int min,int max);
 //-------------------------------------------------------------------------------------------
 
 void main()
@@ -70,10 +72,16 @@ void main()
 
     GetPrevMonthsData(A);
     //StoreThisMonthData(A);
-
+/*
     LoginAsSalesPerson(A);
     PrintShowroom_SalesPersons(A);
     ShowStockCars(A);
+*/
+    int min,max;
+    printf("\n---------------------");
+    printf("\nEnter min and max:");
+    scanf("%d%d",&min,&max);
+    RangeSearchOfCars(A,min,max);
     //----------------------------------------------------------------------------------
 
 
@@ -656,15 +664,195 @@ Car_Data_Node* GetDataPointer(Car_Tree_Node *root,int VIN)
     }
     return retval;
 }
-
+//RangeSearch and GetDataPointer need tto be debugged
 
 void RangeSearchOfCars(Car_Showroom A,int min,int max)//Currently under dev.
 {
     Car_Data_Node *sold=NULL,*stock=NULL;
     sold=GetDataPointer(A.Sold_Cars_Database,min);
     stock=GetDataPointer(A.Stock_Cars_Database,min);
-    int sold_trav=0,stock_trav=0,valid=0;
-    
+    int sold_trav=0,stock_trav=0,valid=0,done=0;
+    //First advance both the pointers till they become  vaild....i.e. their value is greater than min
+    while(sold!=NULL && valid==0)
+    {
+        if(sold->car[sold_trav].VIN != -1 )
+        {
+            if(sold->car[sold_trav].VIN < min)
+            {
+                if(sold_trav<c-1)
+                {
+                    sold_trav++;
+                }
+                else
+                {
+                    sold_trav=0;
+                    sold=sold->next;
+                }
+            }
+            else
+            {
+                valid=1;
+            }
+        }
+        else
+        {
+            sold=sold->next;
+            sold_trav=0;
+        }
+    }
+    valid=0;
+    while(stock!=NULL && valid==0)
+    {
+        if(stock->car[stock_trav].VIN != -1 )
+        {
+            if(stock->car[stock_trav].VIN < min)
+            {
+                if(stock_trav<c-1)
+                {
+                    stock_trav++;
+                }
+                else
+                {
+                    stock_trav=0;
+                    stock=stock->next;
+                }
+            }
+            else
+            {
+                valid=1;
+            }
+        }
+        else
+        {
+            stock=stock->next;
+            stock_trav=0;
+        }
+    }
+
+    //Now ,we will traverse and print it
+    while(sold!=NULL && stock!=NULL && !done)
+    {
+        if(sold->car[sold_trav].VIN < stock->car[stock_trav].VIN)
+        {
+            if(sold->car[sold_trav].VIN <= max)
+            {
+                //print this car
+                PrintCar(sold->car[sold_trav]);
+                printf(" :SOLD");
+                //Advance the sold ptr
+                if(sold_trav < c-1)
+                {
+                    sold_trav++;
+                    if(sold->car[sold_trav].VIN==-1)//Vailidity checking
+                    {
+                        sold=sold->next;
+                        sold_trav=0;
+                    }
+                }
+                else
+                {
+                    sold=sold->next;
+                    sold_trav=0;
+                }
+                
+            }
+            else
+            {
+                done=1;
+            }
+        }
+        else
+        {
+            if(stock->car[stock_trav].VIN <= max)
+            {
+                //print this car
+                PrintCar(stock->car[stock_trav]);
+                //Advance the sold ptr
+                if(stock_trav < c-1)
+                {
+                    stock_trav++;
+                    if(stock->car[stock_trav].VIN==-1)
+                    {
+                        stock=stock->next;
+                        stock_trav=0;
+                    }
+                }
+                else
+                {
+                    stock=stock->next;
+                    stock_trav=0;
+                }
+                
+            }
+            else
+            {
+                done=1;
+            }
+        }
+    }
+    if(done==0)
+    {
+        //One of the lists was exhausted
+        while(sold!=NULL && done==0)
+        {
+            if(sold->car[sold_trav].VIN!=-1)
+            {
+                if(sold->car[sold_trav].VIN <= max)
+                {
+                    PrintCar(sold->car[sold_trav]);
+                    printf(" :SOLD");
+                    if(sold_trav < c-1)
+                    {
+                        sold_trav++;
+                    }
+                    else
+                    {
+                        sold_trav=0;
+                        sold=sold->next;
+                    }
+                }
+                else
+                {
+                    done=1;
+                }
+            }
+            else
+            {
+                sold=sold->next;
+                sold_trav=0;
+            }
+        }
+
+        while(stock!=NULL && done==0)
+        {
+            if(stock->car[stock_trav].VIN!=-1)
+            {
+                if(stock->car[stock_trav].VIN <= max)
+                {
+                    PrintCar(stock->car[stock_trav]);
+                    if(stock_trav < c-1)
+                    {
+                        stock_trav++;
+                    }
+                    else
+                    {
+                        stock_trav=0;
+                        stock=stock->next;
+                    }
+                }
+                else
+                {
+                    done=1;
+                }
+            }
+            else
+            {
+                stock=stock->next;
+                stock_trav=0;
+            }
+        }
+    }
+
    
 
 }
@@ -824,9 +1012,11 @@ void InitUI(Sales_Person S,Car_Showroom A)
                         h=NO_CHANGE;
                         InsertIntoCustomerDatabase(S.Customer_Database,C,&h);
                         DeleteCar(A.Stock_Cars_Database,VIN);
+                        A.no_of_cars_available--;
                         car.Customer_ID=id;
                         C.Sold_Car_VIN=VIN;
                         InsertCar(A.Sold_Cars_Database,car);
+                        A.no_of_cars_sold++;
                         InsertCar(S.Sold_Cars_Database,car);
                         printf("\nSuccessful trasaction!");
                         done=1;

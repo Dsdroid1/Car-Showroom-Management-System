@@ -5,4 +5,4 @@
 11 2 1 1 2500 Tesla
 5 0 0 0 2400 Duster
 3 1 1 2 3000 SpeedCar
-20 2 0 0 2500 Tesla
+22 2 0 0 2500 Tesla
