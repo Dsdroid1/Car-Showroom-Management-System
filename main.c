@@ -20,7 +20,7 @@ void PrintCustomer(Customer C,Car car);
 void PrintData(Sales_Person S);
 void Print_SalesPerson_Bio(Sales_Person_Node *root);
 void PrintShowroom_SalesPersons(Car_Showroom A);
-Car_Tree_Node* Init_Cars(char filename[]);
+Car_Tree_Node* Init_Cars(char filename[],int *ptr);
 Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databaseptr,Customer_Node **Customer_Databaseptr,int *no_of_cars_sold);
 //-------------------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ void MakeDictionary(Car_Tree_Node *root,struct Dictionary dptr[],int *num_valid_
 void FindMaxCountAcrossShowrooms(Car_Showroom A,Car_Showroom B,Car_Showroom C);
 void SearchCarByVIN(Car_Showroom A,int VIN);
 int GetThisMonthSales(Sales_Person_Node *root);
-void GetPrevMonthsData(Car_Showroom A);
+void GetPrevMonthsData(Car_Showroom A,char filename[]);
 void StoreThisMonthData(Car_Showroom A);
 status_code LoginAsSalesPerson(Car_Showroom *Aptr);
 Car_Showroom InitUI(Sales_Person *Sptr,Car_Showroom A);
@@ -63,93 +63,239 @@ void main()
     A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
     h=NO_CHANGE;
     //---Adding stock cars----------------------------------------------------------
-    A.Stock_Cars_Database=Init_Cars("Cars.txt");
+    A.Stock_Cars_Database=Init_Cars("CarsA.txt",&A.no_of_cars_available);
 //----------------------End of initialising showroom A-----------------*
 
+//--------------Initialising showroom B--------------------------------*
+    B.Customer_Database=NULL;
+    B.Sales_Person_Database=NULL;
+    B.Sold_Cars_Database=NULL;
+    B.Stock_Cars_Database=NULL;
+    B.no_of_cars_available=0;
+    B.no_of_cars_sold=0;
+    //------To add SalesPerson to a given showroom--------------------------------------
+    //---Adding stock cars----------------------------------------------------------
+    B.Stock_Cars_Database=Init_Cars("CarsB.txt",&B.no_of_cars_available);
+//----------------------End of  initialising showroom B----------------*
 
+//--------------Initialising showroom C--------------------------------*
+    C.Customer_Database=NULL;
+    C.Sales_Person_Database=NULL;
+    C.Sold_Cars_Database=NULL;
+    C.Stock_Cars_Database=NULL;
+    C.no_of_cars_available=0;
+    C.no_of_cars_sold=0;
+    //------To add SalesPerson to a given showroom--------------------------------------
+    //---Adding stock cars----------------------------------------------------------
+    C.Stock_Cars_Database=Init_Cars("CarsC.txt",&C.no_of_cars_available);
+//----------------------End of  initialising showroom C----------------*
+
+
+//-------------Working UI----------------------------------------------------
     char showroom;
     int exit=0,done=0;
     int choice=0;
     int VIN=0,min=0,max=100;
     //----Adding the UI part-----
-    printf("\nInitialisation of Showrooms done!!");
-    printf("\n-----------------------------------");
-    printf("\nWhich Showroom would you like to visit:");
-    printf("\nA->Showroom1 \nB->Showroom2 \nC->Showroom3 \nYour Choice:");
-    scanf("%c",&showroom);
-    switch(showroom)
+    while(exit==0)
     {
-        case 'A':
-            while(done==0)
-            {
-                printf("\nWhat would you like to do?:");
-                printf("\n0.Get all data regarding this showroom");
-                printf("\n1.Add a sales person");
-                printf("\n2.Get the most popular car across showrooms");
-                printf("\n3.Find the most successful sales person");
-                printf("\n4.Sell a car to a customer");
-                printf("\n5.Get current months sales prediction");
-                printf("\n6.Get information related to a car(by VIN)");
-                printf("\n7.Get info about cars in range(by VIN)");
-                printf("\nYour choice:");
-                scanf("%d",&choice);
-                switch(choice)
+        printf("\nInitialisation of Showrooms done!!");
+        printf("\n-----------------------------------");
+        printf("\nWhich Showroom would you like to visit:");
+        printf("\nA->Showroom1 \nB->Showroom2 \nC->Showroom3 \nYour Choice:");
+        scanf("%c",&showroom);
+        switch(showroom)
+        {
+            case 'A':
+                while(done==0)
                 {
-                    case 0:
-                        PrintShowroom_SalesPersons(A);
-                        break;
+                    printf("\nWhat would you like to do?:");
+                    printf("\n0.Get all data regarding this showroom");
+                    printf("\n1.Add a sales person");
+                    printf("\n2.Get the most popular car across showrooms");
+                    printf("\n3.Find the most successful sales person");
+                    printf("\n4.Sell a car to a customer");
+                    printf("\n5.Get current month's sales prediction");
+                    printf("\n6.Get information related to a car(by VIN)");
+                    printf("\n7.Get info about cars in range(by VIN)");
+                    printf("\nYour choice:");
+                    scanf("%d",&choice);
+                    switch(choice)
+                    {
+                        case 0:
+                            PrintShowroom_SalesPersons(A);
+                            break;
 
-                    case 1://To be tested
-                        A=AddSalesPerson(A);
-                        break;
+                        case 1://To be tested->done
+                            A=AddSalesPerson(A);
+                            break;
 
-                    case 2:
-                        FindMaxCount(A);
-                        //FindMaxCountAcrossShowrooms(A,B,C);
-                        break;
+                        case 2:
+                            FindMaxCount(A);
+                            //FindMaxCountAcrossShowrooms(A,B,C);
+                            break;
 
-                    case 3:
-                        FindMaxSales(A);
-                        break;
+                        case 3:
+                            FindMaxSales(A);
+                            break;
 
-                    case 4:
-                        LoginAsSalesPerson(&A);
-                        break;
+                        case 4:
+                            LoginAsSalesPerson(&A);
+                            break;
 
-                    case 5://Add filename as parameter because of multiple showrooms
-                        GetPrevMonthsData(A);
-                        break;
+                        case 5://Add filename as parameter because of multiple showrooms
+                            GetPrevMonthsData(A,"PreviousSalesA.txt");
+                            break;
 
-                    case 6:
-                        printf("\nEnter the car VIN:");
-                        scanf("%d",&VIN);
-                        SearchCarByVIN(A,VIN);
-                        break;
+                        case 6:
+                            printf("\nEnter the car VIN:");
+                            scanf("%d",&VIN);
+                            SearchCarByVIN(A,VIN);
+                            break;
 
-                    case 7:
-                        printf("\nEnter the lower bound:");
-                        scanf("%d",&min);
-                        printf("\nEnter the upper bound:");
-                        scanf("%d",&max);
-                        RangeSearchOfCars(A,min,max);
-                        break;
+                        case 7:
+                            printf("\nEnter the lower bound:");
+                            scanf("%d",&min);
+                            printf("\nEnter the upper bound:");
+                            scanf("%d",&max);
+                            RangeSearchOfCars(A,min,max);
+                            break;
 
-                    default:
-                        done=1;
-                        break;
+                        default:
+                            done=1;
+                            break;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'B':
-            break;
+            case 'B':
+                while(done==0)
+                {
+                    printf("\nWhat would you like to do?:");
+                    printf("\n0.Get all data regarding this showroom");
+                    printf("\n1.Add a sales person");
+                    printf("\n2.Get the most popular car across showrooms");
+                    printf("\n3.Find the most successful sales person");
+                    printf("\n4.Sell a car to a customer");
+                    printf("\n5.Get current month's sales prediction");
+                    printf("\n6.Get information related to a car(by VIN)");
+                    printf("\n7.Get info about cars in range(by VIN)");
+                    printf("\nYour choice:");
+                    scanf("%d",&choice);
+                    switch(choice)
+                    {
+                        case 0:
+                            PrintShowroom_SalesPersons(B);
+                            break;
 
-        case 'C':
-            break;
+                        case 1://To be tested->done
+                            B=AddSalesPerson(B);
+                            break;
 
-        default:
-            exit=1;
-            break;
+                        case 2:
+                            FindMaxCount(B);
+                            //FindMaxCountAcrossShowrooms(A,B,C);
+                            break;
+
+                        case 3:
+                            FindMaxSales(B);
+                            break;
+
+                        case 4:
+                            LoginAsSalesPerson(&B);
+                            break;
+
+                        case 5://Add filename as parameter because of multiple showrooms
+                            GetPrevMonthsData(B,"PreviousSalesB.txt");
+                            break;
+
+                        case 6:
+                            printf("\nEnter the car VIN:");
+                            scanf("%d",&VIN);
+                            SearchCarByVIN(B,VIN);
+                            break;
+
+                        case 7:
+                            printf("\nEnter the lower bound:");
+                            scanf("%d",&min);
+                            printf("\nEnter the upper bound:");
+                            scanf("%d",&max);
+                            RangeSearchOfCars(B,min,max);
+                            break;
+
+                        default:
+                            done=1;
+                            break;
+                    }
+                }
+                break;
+
+            case 'C':
+                while(done==0)
+                {
+                    printf("\nWhat would you like to do?:");
+                    printf("\n0.Get all data regarding this showroom");
+                    printf("\n1.Add a sales person");
+                    printf("\n2.Get the most popular car across showrooms");
+                    printf("\n3.Find the most successful sales person");
+                    printf("\n4.Sell a car to a customer");
+                    printf("\n5.Get current month's sales prediction");
+                    printf("\n6.Get information related to a car(by VIN)");
+                    printf("\n7.Get info about cars in range(by VIN)");
+                    printf("\nYour choice:");
+                    scanf("%d",&choice);
+                    switch(choice)
+                    {
+                        case 0:
+                            PrintShowroom_SalesPersons(C);
+                            break;
+
+                        case 1://To be tested->done
+                            C=AddSalesPerson(C);
+                            break;
+
+                        case 2:
+                            FindMaxCount(C);
+                            //FindMaxCountAcrossShowrooms(A,B,C);
+                            break;
+
+                        case 3:
+                            FindMaxSales(C);
+                            break;
+
+                        case 4:
+                            LoginAsSalesPerson(&C);
+                            break;
+
+                        case 5://Add filename as parameter because of multiple showrooms
+                            GetPrevMonthsData(C,"PreviousSalesC.txt");
+                            break;
+
+                        case 6:
+                            printf("\nEnter the car VIN:");
+                            scanf("%d",&VIN);
+                            SearchCarByVIN(C,VIN);
+                            break;
+
+                        case 7:
+                            printf("\nEnter the lower bound:");
+                            scanf("%d",&min);
+                            printf("\nEnter the upper bound:");
+                            scanf("%d",&max);
+                            RangeSearchOfCars(C,min,max);
+                            break;
+
+                        default:
+                            done=1;
+                            break;
+                    }
+                }
+                break;
+
+            default:
+                exit=1;
+                break;
+        }
     }
 
 
@@ -237,7 +383,7 @@ void main()
 
 //-------------------Definitions of the Aux. Functions------------------------------------------
 //*****************This function reads car data from a file*************************************
-Car_Tree_Node* Init_Cars(char filename[])
+Car_Tree_Node* Init_Cars(char filename[],int *ptr)
 {
     Car_Tree_Node *root=NULL;
     FILE *fp;
@@ -252,6 +398,7 @@ Car_Tree_Node* Init_Cars(char filename[])
             car=MakeCar(VIN,Name,color,fuel,type);
             car.price=price;
             root=InsertCar(root,car);
+            *ptr=(*ptr)+1;
         }
     }
     else
@@ -664,6 +811,7 @@ void SearchCarByVIN(Car_Showroom A,int VIN)
         {
             printf("\nCar details:");
             PrintCar(car);
+            printf("\nIN STOCK");
         }
         else
         {
@@ -692,10 +840,10 @@ int GetThisMonthSales(Sales_Person_Node *root)
     return retval;
 }
 
-void GetPrevMonthsData(Car_Showroom A)
+void GetPrevMonthsData(Car_Showroom A,char filename[])
 {
     FILE *fp;
-    fp=fopen("PreviousSales.txt","r");
+    fp=fopen(filename,"r");
     int sum=0,no_of_months=0,temp=0;
     while(fscanf(fp,"%d",&temp)!=EOF)
     {
