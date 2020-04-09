@@ -13,7 +13,7 @@ Sales_Person_Node* RotateRight(Sales_Person_Node* root);
 Sales_Person_Node* BalanceLeft(Sales_Person_Node* root);
 Sales_Person_Node* BalanceRight(Sales_Person_Node* root);
 Sales_Person_Node* InsertIntoSalesPersonDatabase(Sales_Person_Node *root,Sales_Person S,Ht_Direction *increase);
-Sales_Person_Node* DeleteFromSalesPersonDatabase(Sales_Person_Node* root,int ID,Bool *height_decreased);
 Sales_Person SearchSalesPerson(Sales_Person_Node *root,int ID);
+Sales_Person_Node* SearchSalesPersonNode(Sales_Person_Node *root,int ID);
 
 #endif

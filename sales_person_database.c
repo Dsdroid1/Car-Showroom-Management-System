@@ -242,10 +242,7 @@ Sales_Person_Node* RotateRight(Sales_Person_Node* root)
     return retval;
 }
 
-Sales_Person_Node* DeleteFromSalesPersonDatabase(Sales_Person_Node* root,int ID,Bool *height_decreased)
-{
 
-}
 
 Sales_Person SearchSalesPerson(Sales_Person_Node *root,int ID)
 {
@@ -267,4 +264,27 @@ Sales_Person SearchSalesPerson(Sales_Person_Node *root,int ID)
         }
     }
     return S;
+}
+
+Sales_Person_Node* SearchSalesPersonNode(Sales_Person_Node *root,int ID)
+{
+    Sales_Person_Node *retval=NULL;
+    //Sales_Person S;
+    //S.ID=-1;//Invalid
+    if(root!=NULL)
+    {
+        if(root->S.ID < ID)
+        {
+            retval=SearchSalesPersonNode(root->right,ID);
+        }
+        else if(root->S.ID > ID)
+        {
+            retval=SearchSalesPersonNode(root->left,ID);
+        }
+        else
+        {
+            retval=root;
+        }
+    }
+    return retval;
 }

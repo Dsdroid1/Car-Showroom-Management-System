@@ -1,0 +1,9 @@
+110 ghoul Haise 20000
+33 SpeedCar 3000 1 1 2 25
+25 Stark 7778889997 HuecoMudo 33 6556 0
+6 Duster 2500 2 0 0 17
+17 Lelouch 9898989856 Britannia 6 2788 3
+4 Duster 2500 1 1 1 8
+8 Gon 6798786989 HillView 4 8818 2
+39 Tesla 4000 1 0 2 13 
+13 Arima 9996669996 CCGHeadquarters  39 4444 0

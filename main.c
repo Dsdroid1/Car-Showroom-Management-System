@@ -25,7 +25,7 @@ Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databasep
 //-------------------------------------------------------------------------------------------
 
 //------------------Main Functions to do stuff-----------------------------------------------
-void AddSalesPerson(Car_Showroom A);
+Car_Showroom AddSalesPerson(Car_Showroom A);
 void LocateMaxSales(Sales_Person_Node *root,int *curr_highest,Sales_Person_Node **retval);
 void FindMaxSales(Car_Showroom A);
 void FindMaxCount(Car_Showroom A);
@@ -35,8 +35,8 @@ void SearchCarByVIN(Car_Showroom A,int VIN);
 int GetThisMonthSales(Sales_Person_Node *root);
 void GetPrevMonthsData(Car_Showroom A);
 void StoreThisMonthData(Car_Showroom A);
-status_code LoginAsSalesPerson(Car_Showroom A);
-void InitUI(Sales_Person S,Car_Showroom A);
+status_code LoginAsSalesPerson(Car_Showroom *Aptr);
+Car_Showroom InitUI(Sales_Person *Sptr,Car_Showroom A);
 void ShowStockCars(Car_Showroom A);
 Car_Data_Node* GetDataPointer(Car_Tree_Node *root,int VIN);
 void RangeSearchOfCars(Car_Showroom A,int min,int max);
@@ -45,23 +45,117 @@ void RangeSearchOfCars(Car_Showroom A,int min,int max);
 void main()
 {
     
-    Car_Showroom A;
+    Car_Showroom A,B,C;
+    Sales_Person S;
+    Ht_Direction h=NO_CHANGE;
+//*----------------Initialising showroom A------------------------------*
     A.Customer_Database=NULL;
     A.Sales_Person_Database=NULL;
     A.Sold_Cars_Database=NULL;
     A.Stock_Cars_Database=NULL;
     A.no_of_cars_sold=0;
     A.no_of_cars_available=0;
-    Sales_Person S;
-
     //------To add SalesPerson to a given showroom--------------------------------------
-    Ht_Direction h=NO_CHANGE;
     S=InitSalesPerson("SaleA1.txt",&A.Sold_Cars_Database,&A.Customer_Database,&A.no_of_cars_sold);
     A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
     h=NO_CHANGE;
-    
+    S=InitSalesPerson("SaleA2.txt",&A.Sold_Cars_Database,&A.Customer_Database,&A.no_of_cars_sold);
+    A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
+    h=NO_CHANGE;
+    //---Adding stock cars----------------------------------------------------------
     A.Stock_Cars_Database=Init_Cars("Cars.txt");
+//----------------------End of initialising showroom A-----------------*
 
+
+    char showroom;
+    int exit=0,done=0;
+    int choice=0;
+    int VIN=0,min=0,max=100;
+    //----Adding the UI part-----
+    printf("\nInitialisation of Showrooms done!!");
+    printf("\n-----------------------------------");
+    printf("\nWhich Showroom would you like to visit:");
+    printf("\nA->Showroom1 \nB->Showroom2 \nC->Showroom3 \nYour Choice:");
+    scanf("%c",&showroom);
+    switch(showroom)
+    {
+        case 'A':
+            while(done==0)
+            {
+                printf("\nWhat would you like to do?:");
+                printf("\n0.Get all data regarding this showroom");
+                printf("\n1.Add a sales person");
+                printf("\n2.Get the most popular car across showrooms");
+                printf("\n3.Find the most successful sales person");
+                printf("\n4.Sell a car to a customer");
+                printf("\n5.Get current months sales prediction");
+                printf("\n6.Get information related to a car(by VIN)");
+                printf("\n7.Get info about cars in range(by VIN)");
+                printf("\nYour choice:");
+                scanf("%d",&choice);
+                switch(choice)
+                {
+                    case 0:
+                        PrintShowroom_SalesPersons(A);
+                        break;
+
+                    case 1://To be tested
+                        A=AddSalesPerson(A);
+                        break;
+
+                    case 2:
+                        FindMaxCount(A);
+                        //FindMaxCountAcrossShowrooms(A,B,C);
+                        break;
+
+                    case 3:
+                        FindMaxSales(A);
+                        break;
+
+                    case 4:
+                        LoginAsSalesPerson(&A);
+                        break;
+
+                    case 5://Add filename as parameter because of multiple showrooms
+                        GetPrevMonthsData(A);
+                        break;
+
+                    case 6:
+                        printf("\nEnter the car VIN:");
+                        scanf("%d",&VIN);
+                        SearchCarByVIN(A,VIN);
+                        break;
+
+                    case 7:
+                        printf("\nEnter the lower bound:");
+                        scanf("%d",&min);
+                        printf("\nEnter the upper bound:");
+                        scanf("%d",&max);
+                        RangeSearchOfCars(A,min,max);
+                        break;
+
+                    default:
+                        done=1;
+                        break;
+                }
+            }
+            break;
+
+        case 'B':
+            break;
+
+        case 'C':
+            break;
+
+        default:
+            exit=1;
+            break;
+    }
+
+
+
+
+/*
     PrintShowroom_SalesPersons(A);
     
     FindMaxSales(A);
@@ -72,16 +166,18 @@ void main()
 
     GetPrevMonthsData(A);
     //StoreThisMonthData(A);
+*/
 /*
     LoginAsSalesPerson(A);
     PrintShowroom_SalesPersons(A);
     ShowStockCars(A);
 */
-    int min,max;
+/*    int min,max;
     printf("\n---------------------");
     printf("\nEnter min and max:");
     scanf("%d%d",&min,&max);
     RangeSearchOfCars(A,min,max);
+*/
     //----------------------------------------------------------------------------------
 
 
@@ -109,7 +205,7 @@ void main()
     //See if his incentive is 2%,make it 3% and print it
     ---------------------------------------------*/
 
-    /*-------------------PART E--------------------
+    /*-------------------PART E--------------------//FN DONE->LoginAsSalesPerson,InitUI//
     //Register Customer,add it to Sales Person selling database
     //Display available cars 
     //Select car via VIN
@@ -131,7 +227,7 @@ void main()
     //Find method for that
     ---------------------------------------------*/
 
-    /*-------------------PART H--------------------
+    /*-------------------PART H--------------------//FN DONE->RangeSearchOfCars//
     //Range search on B+ tree(simultaneous on stock and sold)
     ---------------------------------------------*/
 
@@ -342,45 +438,52 @@ Sales_Person InitSalesPerson(char Filename[],Car_Tree_Node **Sold_Cars_Databasep
 void PrintData(Sales_Person S)
 {
     //Prints The data of who bought which car and stuff
-    Car_Data_Node *d=NULL;
-    Car_Tree_Node *tptr=NULL;
-    tptr=S.Sold_Cars_Database;
+    if(S.Sold_Cars_Database!=NULL)
+    {
+        Car_Data_Node *d=NULL;
+        Car_Tree_Node *tptr=NULL;
+        tptr=S.Sold_Cars_Database;
+        
+        while(tptr->isLeaf==FALSE)
+        {
+            tptr=tptr->children.child_t[0];
+        }
+        if(tptr->children.child_l[0]==NULL)
+        {
+            d=tptr->children.child_l[1];
+        }
+        else
+        {
+            d=tptr->children.child_l[0];
+        }
 
-    while(tptr->isLeaf==FALSE)
-    {
-        tptr=tptr->children.child_t[0];
-    }
-    if(tptr->children.child_l[0]==NULL)
-    {
-        d=tptr->children.child_l[1];
+        int Customer_ID=-1,i=0;
+        Customer C;
+        while(d!=NULL)
+        {
+            i=0;
+            while(i<c && d->car[i].VIN!=-1)
+            {
+                printf("\n-----------------------------------------");
+                Customer_ID=d->car[i].Customer_ID;
+                PrintCar(d->car[i]);
+                //Search for customer in customer database
+                C=SearchCustomer(S.Customer_Database,Customer_ID);
+                //print customer details
+                printf("\nSOLD TO:");
+                if(C.ID!=-1)
+                {
+                    PrintCustomer(C,d->car[i]);
+                }
+            
+                i++;
+            }
+            d=d->next;
+        }
     }
     else
     {
-        d=tptr->children.child_l[0];
-    }
-
-    int Customer_ID=-1,i=0;
-    Customer C;
-    while(d!=NULL)
-    {
-        i=0;
-        while(i<c && d->car[i].VIN!=-1)
-        {
-            printf("\n-----------------------------------------");
-            Customer_ID=d->car[i].Customer_ID;
-            PrintCar(d->car[i]);
-            //Search for customer in customer database
-            C=SearchCustomer(S.Customer_Database,Customer_ID);
-            //print customer details
-            printf("\nSOLD TO:");
-            if(C.ID!=-1)
-            {
-                PrintCustomer(C,d->car[i]);
-            }
-           
-            i++;
-        }
-        d=d->next;
+        printf("\n Nothing Sold yet");
     }
 }
 
@@ -388,7 +491,7 @@ void PrintData(Sales_Person S)
 
 //--------"Mainstream Functions"-----------------------------------------------------
 
-void AddSalesPerson(Car_Showroom A)
+Car_Showroom AddSalesPerson(Car_Showroom A)
 {
     Sales_Person S;
     S.Customer_Database=NULL;
@@ -403,9 +506,10 @@ void AddSalesPerson(Car_Showroom A)
     do{
     printf("\nWhat should be set as your password(6 chars at max):");
     scanf("%s",S.Password);
-    }while(strlen(S.Password)<=7);
+    }while(strlen(S.Password)>6);
     Ht_Direction h=NO_CHANGE;
     A.Sales_Person_Database=InsertIntoSalesPersonDatabase(A.Sales_Person_Database,S,&h);
+    return A;
 }
 
 void LocateMaxSales(Sales_Person_Node *root,int *curr_highest,Sales_Person_Node **retval)
@@ -728,7 +832,7 @@ void RangeSearchOfCars(Car_Showroom A,int min,int max)//Currently under dev.
             stock_trav=0;
         }
     }
-
+    printf("\n-------------------------------------");
     //Now ,we will traverse and print it
     while(sold!=NULL && stock!=NULL && !done)
     {
@@ -852,45 +956,57 @@ void RangeSearchOfCars(Car_Showroom A,int min,int max)//Currently under dev.
             }
         }
     }
-
-   
-
+    printf("\n-------------------------------------");
 }
 
-status_code LoginAsSalesPerson(Car_Showroom A)
+status_code LoginAsSalesPerson(Car_Showroom *Aptr)
 {
     int id;
+    Car_Showroom A;
+    A=*Aptr;
     char password[7];
     status_code sc=SUCCESS;
     printf("\nEnter your Sales Id:");
     scanf("%d",&id);
     //Sales_Person_Node *database=A.Sales_Person_Database;
     Sales_Person S;
-    S=SearchSalesPerson(A.Sales_Person_Database,id);
-    if(S.ID==-1)
+    Sales_Person_Node *Sptr;
+    Sptr=SearchSalesPersonNode(A.Sales_Person_Database,id);
+    if(Sptr!=NULL)
+    {
+        S=Sptr->S;
+        if(S.ID==-1)
+        {
+            printf("\nError!This sales person does not exist!");
+            sc=FAILURE;
+        }
+        else
+        {
+            //Check for password
+            printf("\nEnter Your Password:");
+            scanf("%s",password);
+            if(strcmp(S.Password,password)==0)
+            {
+                printf("\n--------------------------------");
+                printf("\nSuccessful Login");
+                sc=SUCCESS;
+                //Init UI
+                A=InitUI(&S,A);
+                Sptr->S=S;
+            }
+            else
+            {
+                printf("\nWrong Credentials");
+                sc=FAILURE;
+            }
+        }
+    }
+    else
     {
         printf("\nError!This sales person does not exist!");
         sc=FAILURE;
     }
-    else
-    {
-        //Check for password
-        printf("\nEnter Your Password:");
-        scanf("%s",password);
-        if(strcmp(S.Password,password)==0)
-        {
-            printf("\n--------------------------------");
-            printf("\nSuccessful Login");
-            sc=SUCCESS;
-            //Init UI
-            InitUI(S,A);
-        }
-        else
-        {
-            printf("\nWrong Credentials");
-            sc=FAILURE;
-        }
-    }
+    *Aptr=A;
     return sc;
 }
 
@@ -929,10 +1045,12 @@ void ShowStockCars(Car_Showroom A)
     }
 }
 
-void InitUI(Sales_Person S,Car_Showroom A)
+Car_Showroom InitUI(Sales_Person *Sptr,Car_Showroom A)
 {
     int choice;
     int done=0;
+    Sales_Person S;
+    S=*Sptr;
     Customer C;
     int id,VIN;
     while(!done)
@@ -1008,18 +1126,19 @@ void InitUI(Sales_Person S,Car_Showroom A)
                         }
                         C.Car_registration=(C.ID*999+car.VIN*9)%10000;
                         Ht_Direction h=NO_CHANGE;
-                        InsertIntoCustomerDatabase(A.Customer_Database,C,&h);
+                        A.Customer_Database=InsertIntoCustomerDatabase(A.Customer_Database,C,&h);
                         h=NO_CHANGE;
-                        InsertIntoCustomerDatabase(S.Customer_Database,C,&h);
+                        S.Customer_Database=InsertIntoCustomerDatabase(S.Customer_Database,C,&h);
                         DeleteCar(A.Stock_Cars_Database,VIN);
                         A.no_of_cars_available--;
                         car.Customer_ID=id;
                         C.Sold_Car_VIN=VIN;
-                        InsertCar(A.Sold_Cars_Database,car);
+                        A.Sold_Cars_Database=InsertCar(A.Sold_Cars_Database,car);
                         A.no_of_cars_sold++;
-                        InsertCar(S.Sold_Cars_Database,car);
+                        S.Sold_Cars_Database=InsertCar(S.Sold_Cars_Database,car);
                         printf("\nSuccessful trasaction!");
                         done=1;
+                        
                     }
                 }
                 break;
@@ -1030,5 +1149,7 @@ void InitUI(Sales_Person S,Car_Showroom A)
 
         }
     }
+    *Sptr=S;
+    return A;
 }
 //-------------------------------------------------------------------------

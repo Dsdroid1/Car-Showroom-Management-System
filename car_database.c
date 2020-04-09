@@ -1157,6 +1157,11 @@ Car SearchCarDatabase(Car_Tree_Node *root,int VIN)
                         found=1;
                     }
                 }
+                else
+                {
+                    found=-1;
+                    retval.VIN=-1;
+                }
             }
         }
     }
