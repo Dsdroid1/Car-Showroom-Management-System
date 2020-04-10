@@ -1,0 +1,5 @@
+90 speed Light 20000
+22 SpeedCar 2500 2 0 1 30
+30 Kira 9876543441 Japan 22 1734 0
+1 SpeedCar 2500 1 0 0 23
+23 AllMight 7777777779 Hampshire 1 7777 0

@@ -34,7 +34,7 @@ void FindMaxCountAcrossShowrooms(Car_Showroom A,Car_Showroom B,Car_Showroom C);
 void SearchCarByVIN(Car_Showroom A,int VIN);
 int GetThisMonthSales(Sales_Person_Node *root);
 void GetPrevMonthsData(Car_Showroom A,char filename[]);
-void StoreThisMonthData(Car_Showroom A);
+void StoreThisMonthData(Car_Showroom A,char filename[]);//Add param as filename
 status_code LoginAsSalesPerson(Car_Showroom *Aptr);
 Car_Showroom InitUI(Sales_Person *Sptr,Car_Showroom A);
 void ShowStockCars(Car_Showroom A);
@@ -74,6 +74,9 @@ void main()
     B.no_of_cars_available=0;
     B.no_of_cars_sold=0;
     //------To add SalesPerson to a given showroom--------------------------------------
+    S=InitSalesPerson("SaleB1.txt",&B.Sold_Cars_Database,&B.Customer_Database,&B.no_of_cars_sold);
+    B.Sales_Person_Database=InsertIntoSalesPersonDatabase(B.Sales_Person_Database,S,&h);
+    h=NO_CHANGE;
     //---Adding stock cars----------------------------------------------------------
     B.Stock_Cars_Database=Init_Cars("CarsB.txt",&B.no_of_cars_available);
 //----------------------End of  initialising showroom B----------------*
@@ -86,6 +89,9 @@ void main()
     C.no_of_cars_available=0;
     C.no_of_cars_sold=0;
     //------To add SalesPerson to a given showroom--------------------------------------
+    S=InitSalesPerson("SaleC1.txt",&C.Sold_Cars_Database,&C.Customer_Database,&C.no_of_cars_sold);
+    C.Sales_Person_Database=InsertIntoSalesPersonDatabase(C.Sales_Person_Database,S,&h);
+    h=NO_CHANGE;
     //---Adding stock cars----------------------------------------------------------
     C.Stock_Cars_Database=Init_Cars("CarsC.txt",&C.no_of_cars_available);
 //----------------------End of  initialising showroom C----------------*
@@ -131,8 +137,8 @@ void main()
                             break;
 
                         case 2:
-                            FindMaxCount(A);
-                            //FindMaxCountAcrossShowrooms(A,B,C);
+                            //FindMaxCount(A);
+                            FindMaxCountAcrossShowrooms(A,B,C);
                             break;
 
                         case 3:
@@ -193,8 +199,8 @@ void main()
                             break;
 
                         case 2:
-                            FindMaxCount(B);
-                            //FindMaxCountAcrossShowrooms(A,B,C);
+                            //FindMaxCount(B);
+                            FindMaxCountAcrossShowrooms(A,B,C);
                             break;
 
                         case 3:
@@ -255,8 +261,8 @@ void main()
                             break;
 
                         case 2:
-                            FindMaxCount(C);
-                            //FindMaxCountAcrossShowrooms(A,B,C);
+                            //FindMaxCount(C);
+                            FindMaxCountAcrossShowrooms(A,B,C);
                             break;
 
                         case 3:
@@ -860,13 +866,21 @@ void GetPrevMonthsData(Car_Showroom A,char filename[])
     printf("\n*************************************");
 }
 
-void StoreThisMonthData(Car_Showroom A)
+void StoreThisMonthData(Car_Showroom A,char filename[])
 {
     int Current=0;
     Current=GetThisMonthSales(A.Sales_Person_Database);
     FILE *fp;
-    fp=fopen("PreviousSales.txt","a");
-    fprintf(fp,"\n%d",Current);
+    fp=fopen(filename,"a");
+    if(fp!=NULL)
+    {
+        fprintf(fp,"\n%d",Current);
+    }
+    else
+    {
+        printf("\nError in opening file!!");
+    }
+    
     fclose(fp);
 }
 

@@ -1,0 +1,6 @@
+36 1 1 1 3000 SpeedCar
+25 1 0 2 3000 Duster
+29 0 1 2 2500 Duster
+44 2 0 1 4500 Tesla
+41 2 1 2 3500 Duster
+28 0 1 1 2500 SpeedCar
